@@ -722,6 +722,7 @@ int loadelf(farptr_t *entry) {
   printf(" %u, %u ", sizeof(Elf32_Phdr), sizeof(Elf64_Phdr));				//
 
 
+
   loadprogheaders(phoff, phentsize, phnum);
   getrmentry(shoff, shentsize, shnum);
 // --------------------------------------------------------------------------------------
