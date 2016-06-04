@@ -36,10 +36,11 @@ typedef void *va_list;				/* variable argument	*/
 
 #define offsetof(st, m)	((size_t)&((st *)0)->m)
 
-typedef struct __attribute__ ((packed)) {	/* far pointer seg:off	*/
+struct __attribute__ ((packed)) farptr_s {	/* far pointer seg:off	*/
   u16_t offset;
   u16_t segment;
-} farptr_t;				/* can use for far jump		*/
+};						/* can use for far jump	*/
+typedef struct farptr_s farptr_t;
 
 typedef u32_t size_t;			/* size type			*/
 

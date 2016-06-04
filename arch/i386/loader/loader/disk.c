@@ -31,7 +31,7 @@ __asm__ (".code16gcc");				/* compile 16 bit code */
 /* set status in inline asm statements
 status variable must be %0
 */
-// variable variable a %0 helyett
+/* // variable variable a %0 helyett */
 #define	SET_DISK_STATUS							   \
 "	jc	.Lerror%=		\n"	/* error?		*/ \
 "	xorb	%%ah, %%ah		\n"	/* no, status = 0	*/ \
@@ -43,17 +43,19 @@ status variable must be %0
 ".Lend%=:				\n"				   \
 "	movb	%%ah, %0		\n"
 
-typedef struct {
+struct errtext_s {
   const u8_t errcode;			/* error code, status		*/
   const char *errtext;			/* error text			*/
-} errtext_t;
+};
+typedef struct errtext_s errtext_t;
 
-typedef struct {			/* cache element	*/
+struct cachee_s {			/* cache element	*/
   u64_t sector;				/* physical sector, LBA	*/
   u32_t readcnt;			/* counter, 0 = invalid	*/
-} cachee_t;
+};
+typedef struct cachee_s cachee_t;
 
-typedef struct {
+struct driveprm_s {
   int initialized;			/* initialized		*/
   u8_t drive;				/* BIOS disk ID		*/
   int extbios;				/* extended INT13 bios	*/
@@ -65,17 +67,19 @@ typedef struct {
   cachee_t *cacheeptr;			/* pointer to cache elements	*/
   u16_t cacheseg;			/* segment of disk cache	*/
   u16_t cacheentrynum;			/* cached sectors	*/
-} driveprm_t;
+};
+typedef struct driveprm_s driveprm_t;
 
-typedef struct {
+struct partprm_s {
   int initialized;			/* initialized			*/
   u8_t partnum;				/* partition number on dev	*/
   u64_t partstart;			/* LBA partition start		*/
   u64_t partsize;			/* LBA partition size		*/
   u8_t parttype;			/* partition type		*/
-} partprm_t;
+};
+typedef struct partprm_s partprm_t;
 
-typedef struct __attribute__ ((packed)) {	/* buffer for drive par	*/
+struct __attribute__ ((packed)) extprms_s {	/* buffer for drive par	*/
   u16_t size;				/* size of buffer		*/
   u16_t flags;				/* information flags		*/
   u32_t cyls;				/* number of phys cyls		*/
@@ -83,31 +87,35 @@ typedef struct __attribute__ ((packed)) {	/* buffer for drive par	*/
   u32_t secs;				/* sectors / track		*/
   u64_t totsecs;			/* total number of secs		*/
   u16_t bytes;				/* bytes / sector		*/
-} extprms_t;
+};
+typedef struct extprms_s extprms_t;
 
-typedef struct __attribute__ ((packed)) {	/* disk address packet	*/
+struct __attribute__ ((packed)) dap_s {	/* disk address packet		*/
   u8_t size;				/* size of DAP, 10h		*/
   u8_t reserved;			/* reserved byte, 00h		*/
   u16_t seccount;			/* secs to transfer, 1		*/
   u16_t offset;				/* transfer buff offset		*/
   u16_t segment;			/* transfer buff segm.		*/
   u64_t sector;				/* sector number		*/
-} dap_t;
+};
+typedef struct dap_s dap_t;
 
-typedef struct __attribute__ ((packed)) {	/* CHS address in MBR	*/
+struct __attribute__ ((packed)) chs_s {	/* CHS address in MBR		*/
   u8_t head;		/* head						*/
   u8_t sec;		/* sector: 0-5 bits, cyl hi bits 6-7 bits	*/
   u8_t cyl;		/* cylinder low 8 bits				*/
-} chs_t;
+};
+typedef struct chs_s chs_t;
 
-typedef struct __attribute__ ((packed)) {	/* MBR entry		*/
+struct __attribute__ ((packed)) mbr_s {	/* MBR entry			*/
   u8_t bootflag;			/* bit 7.: bootable flag	*/
   chs_t firstchs;			/* 1.st absolute sect. in part.	*/
   u8_t type;				/* partition type		*/
   chs_t lastchs;			/* last absolute sector		*/
   u32_t firstlba;			/* LBA of 1.st absolute sector	*/
   u32_t numofsecs;			/* number of sectors		*/
-} mbr_t;
+};
+typedef struct mbr_s mbr_t;
 
 static u32_t readcnt;	/* sequential ID for reads, for cache LRU	*/
 
@@ -332,16 +340,22 @@ static void initdisk(const char *dev) {
       __asm__ __volatile__ (			/* get drive parameters	*/
 "	movb	%4, %%ah		\n"	/* AH = 8		*/
 "	movb	%6, %%dl		\n"	/* DL = drive		*/
+"	pushw	%%di			\n"	/* save DI		*/
+"	pushw	%%si			\n"	/* save SI		*/
+"	pushw	%%bp			\n"	/* save BP		*/
 "	pushw	%%es			\n"	/* save ES		*/
 "	pushw	%%ds			\n"	/* BIOS bug: save DS	*/
 "	int	%3			\n"
 "	popw	%%ds			\n"	/* BIOS bug: restore DS	*/
 "	popw	%%es			\n"	/* restore ES		*/
+"	popw	%%bp			\n"	/* restore BP		*/
+"	popw	%%si			\n"	/* restore SI		*/
+"	popw	%%di			\n"	/* restore DI		*/
+"	sti				\n"  /* BIOS bug: int may disabled */
 
 "	movb	%5, %%ah		\n"	/* BIOS bug:		*/
 "	movb	%6, %%dl		\n"	/* must get status of	*/
 "	int	%3			\n"	/* last operation	*/
-"	sti				\n"	/* BIOS bug: int may disabled */
 
 "	movw	%%cx, %1		\n"	/* max cyl & sector num	*/
 "	movb	%%dh, %2		\n"	/* max head number	*/
@@ -354,7 +368,7 @@ static void initdisk(const char *dev) {
 	  "i" (DISK_GETPRM),		/* %4 */
 	  "i" (DISK_GETSTAT),		/* %5 */
 	  "m" (disk)			/* %6 */
-	: "cc", "ax", "bl", "cx", "dx", "di", "si", "bp" /* BIOS bug: SI, BP */
+	: "cc", "ax", "bl", "cx", "dx"
       );
       if (status != 0 && disk == 0) {	/* unreported 360 KB floppy?	*/
         heads = 1;		/* if not exists, then first read	*/
@@ -630,7 +644,7 @@ static u16_t readcachedsec(u64_t sector) {
     if (driveprm.cacheeptr[i].readcnt &&
       driveprm.cacheeptr[i].sector == sector) {	/* cache hit		*/
       driveprm.cacheeptr[i].readcnt = ++ readcnt;
-      { u8_t c = getcolor(); setcolor(CLR_LGREEN);  printf("[%llu] ", sector); setcolor(c); }	//
+      { u8_t c = getcolor(); setcolor(CLR_LGREEN);  printf("[%llu] ", sector); setcolor(c); }	/*// */
       return driveprm.cacheseg + (i * driveprm.bytes >> 4);
     }
     if (driveprm.cacheeptr[i].readcnt < mincnt) {
@@ -643,7 +657,7 @@ static u16_t readcachedsec(u64_t sector) {
   driveprm.cacheeptr[oldpos].sector = sector;
   retseg = driveprm.cacheseg + (oldpos * driveprm.bytes >> 4);
   readphyssec(sector, retseg);
-  { u8_t c = getcolor(); setcolor(CLR_LRED);  printf("[%llu] ", sector); setcolor(c); }	//
+  { u8_t c = getcolor(); setcolor(CLR_LRED);  printf("[%llu] ", sector); setcolor(c); }	/* // */
 
   return retseg;
 }

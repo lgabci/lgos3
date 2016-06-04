@@ -9,22 +9,22 @@ __asm__ (".code16gcc");				/* compile 16 bit code */
 #define RMENTRY "rmstart"		/* real mode entry point name	*/
 
 					/* ELF 32 bit types		*/
-typedef u32_t Elf32_Addr;		/* unsigned program address	*/
-typedef u16_t Elf32_Half;		/* unsigned medium integer	*/
-typedef u32_t Elf32_Off;		/* unsigned file offset		*/
-typedef s32_t Elf32_Sword;		/* signed large integer		*/
-typedef u32_t Elf32_Word;		/* unsigned large integer	*/
+typedef u32_t Elf32_Addr_t;		/* unsigned program address	*/
+typedef u16_t Elf32_Half_t;		/* unsigned medium integer	*/
+typedef u32_t Elf32_Off_t;		/* unsigned file offset		*/
+typedef s32_t Elf32_Sword_t;		/* signed large integer		*/
+typedef u32_t Elf32_Word_t;		/* unsigned large integer	*/
 
 					/* ELF 64 bit types		*/
-typedef u64_t Elf64_Addr;		/* unsigned program address	*/
-typedef u16_t Elf64_Half;		/* unsigned small integer	*/
-typedef u64_t Elf64_Off;		/* unsigned file offset		*/
-typedef s32_t Elf64_Sword;		/* signed medium integer	*/
-typedef s64_t Elf64_Sxword;		/* signed large integer		*/
-typedef u32_t Elf64_Word;		/* unsigned medium integer	*/
-typedef u64_t Elf64_Xword;		/* unsigned large integer	*/
-typedef u8_t Elf64_Byte;		/* unsigned tiny integer	*/
-typedef u16_t Elf64_Section;		/* section index (unsigned)	*/
+typedef u64_t Elf64_Addr_t;		/* unsigned program address	*/
+typedef u16_t Elf64_Half_t;		/* unsigned small integer	*/
+typedef u64_t Elf64_Off_t;		/* unsigned file offset		*/
+typedef s32_t Elf64_Sword_t;		/* signed medium integer	*/
+typedef s64_t Elf64_Sxword_t;		/* signed large integer		*/
+typedef u32_t Elf64_Word_t;		/* unsigned medium integer	*/
+typedef u64_t Elf64_Xword_t;		/* unsigned large integer	*/
+typedef u8_t Elf64_Byte_t;		/* unsigned tiny integer	*/
+typedef u16_t Elf64_Section_t;		/* section index (unsigned)	*/
 
 					/* ELF identification		*/
 #define EI_MAG0		0		/* file identification		*/
@@ -225,165 +225,181 @@ typedef u16_t Elf64_Section;		/* section index (unsigned)	*/
 #define ELF64_R_TYPE(i)		((i) & 0xffffffffL)
 #define ELF64_R_INFO(s, t)	(((s) << 32) + ((t) & 0xffffffffL))
 
-typedef struct __attribute__ ((packed)) {	/* ELF 32 header	*/
+struct __attribute__ ((packed)) Elf32_Ehdr_s {	/* ELF 32 header	*/
   unsigned char e_ident[EI_NIDENT];	/* ELF identification		*/
-  Elf32_Half e_type;			/* object file type		*/
-  Elf32_Half e_machine;			/* machine type			*/
-  Elf32_Word e_version;			/* object file version		*/
-  Elf32_Addr e_entry;			/* entry point address		*/
-  Elf32_Off e_phoff;			/* program header offset	*/
-  Elf32_Off e_shoff;			/* section header offset	*/
-  Elf32_Word e_flags;			/* processor specific flags	*/
-  Elf32_Half e_ehsize;			/* ELF header size		*/
-  Elf32_Half e_phentsize;		/* size of program header entry	*/
-  Elf32_Half e_phnum;			/* # of program header entries	*/
-  Elf32_Half e_shentsize;		/* size of section header entry	*/
-  Elf32_Half e_shnum;			/* # of section header entries	*/
-  Elf32_Half e_shstrndx;		/* sect name string table index	*/
-} Elf32_Ehdr;
+  Elf32_Half_t e_type;			/* object file type		*/
+  Elf32_Half_t e_machine;		/* machine type			*/
+  Elf32_Word_t e_version;		/* object file version		*/
+  Elf32_Addr_t e_entry;			/* entry point address		*/
+  Elf32_Off_t e_phoff;			/* program header offset	*/
+  Elf32_Off_t e_shoff;			/* section header offset	*/
+  Elf32_Word_t e_flags;			/* processor specific flags	*/
+  Elf32_Half_t e_ehsize;		/* ELF header size		*/
+  Elf32_Half_t e_phentsize;		/* size of program header entry	*/
+  Elf32_Half_t e_phnum;			/* # of program header entries	*/
+  Elf32_Half_t e_shentsize;		/* size of section header entry	*/
+  Elf32_Half_t e_shnum;			/* # of section header entries	*/
+  Elf32_Half_t e_shstrndx;		/* sect name string table index	*/
+};
+typedef struct Elf32_Ehdr_s Elf32_Ehdr_t;
 
-typedef struct __attribute__ ((packed)) {	/* ELF 64 header	*/
+struct __attribute__ ((packed)) Elf64_Ehdr_s {	/* ELF 64 header	*/
   unsigned char e_ident[EI_NIDENT];	/* ELF identification		*/
-  Elf64_Half e_type;			/* object file type		*/
-  Elf64_Half e_machine;			/* machine type			*/
-  Elf64_Word e_version;			/* object file version		*/
-  Elf64_Addr e_entry;			/* entry point address		*/
-  Elf64_Off e_phoff;			/* program header offset	*/
-  Elf64_Off e_shoff;			/* section header offset	*/
-  Elf64_Word e_flags;			/* processor specific flags	*/
-  Elf64_Half e_ehsize;			/* ELF header size		*/
-  Elf64_Half e_phentsize;		/* size of program header entry	*/
-  Elf64_Half e_phnum;			/* # of program header entries	*/
-  Elf64_Half e_shentsize;		/* size of section header entry	*/
-  Elf64_Half e_shnum;			/* # of section header entries	*/
-  Elf64_Half e_shstrndx;		/* sect name string table index	*/
-} Elf64_Ehdr;
+  Elf64_Half_t e_type;			/* object file type		*/
+  Elf64_Half_t e_machine;		/* machine type			*/
+  Elf64_Word_t e_version;		/* object file version		*/
+  Elf64_Addr_t e_entry;			/* entry point address		*/
+  Elf64_Off_t e_phoff;			/* program header offset	*/
+  Elf64_Off_t e_shoff;			/* section header offset	*/
+  Elf64_Word_t e_flags;			/* processor specific flags	*/
+  Elf64_Half_t e_ehsize;		/* ELF header size		*/
+  Elf64_Half_t e_phentsize;		/* size of program header entry	*/
+  Elf64_Half_t e_phnum;			/* # of program header entries	*/
+  Elf64_Half_t e_shentsize;		/* size of section header entry	*/
+  Elf64_Half_t e_shnum;			/* # of section header entries	*/
+  Elf64_Half_t e_shstrndx;		/* sect name string table index	*/
+};
+typedef struct Elf64_Ehdr_s Elf64_Ehdr_t;
 
-typedef struct __attribute__ ((packed)) {	/* ELF32 section header	*/
-  Elf32_Word sh_name;			/* name of the section		*/
-  Elf32_Word sh_type;			/* section type			*/
-  Elf32_Word sh_flags;			/* section flags and attributes	*/
-  Elf32_Addr sh_addr;			/* virtual memory address	*/
-  Elf32_Off sh_offset;			/* file byte offset		*/
-  Elf32_Word sh_size;			/* section size in bytes	*/
-  Elf32_Word sh_link;			/* section header table index	*/
-  Elf32_Word sh_info;			/* extra information		*/
-  Elf32_Word sh_addralign;		/* alignment constraints	*/
-  Elf32_Word sh_entsize;		/* fixed size entries size	*/
-} Elf32_Shdr;
+struct __attribute__ ((packed)) Elf32_Shdr_s {	/* ELF32 section header	*/
+  Elf32_Word_t sh_name;			/* name of the section		*/
+  Elf32_Word_t sh_type;			/* section type			*/
+  Elf32_Word_t sh_flags;		/* section flags and attributes	*/
+  Elf32_Addr_t sh_addr;			/* virtual memory address	*/
+  Elf32_Off_t sh_offset;		/* file byte offset		*/
+  Elf32_Word_t sh_size;			/* section size in bytes	*/
+  Elf32_Word_t sh_link;			/* section header table index	*/
+  Elf32_Word_t sh_info;			/* extra information		*/
+  Elf32_Word_t sh_addralign;		/* alignment constraints	*/
+  Elf32_Word_t sh_entsize;		/* fixed size entries size	*/
+};
+typedef struct Elf32_Shdr_s Elf32_Shdr_t;
 
-typedef struct __attribute__ ((packed)) {	/* ELF64 section header	*/
-  Elf64_Word sh_name;			/* name of the section		*/
-  Elf64_Word sh_type;			/* section type			*/
-  Elf64_Xword sh_flags;			/* section flags and attributes	*/
-  Elf64_Addr sh_addr;			/* virtual memory address	*/
-  Elf64_Off sh_offset;			/* file byte offset		*/
-  Elf64_Xword sh_size;			/* section size in bytes	*/
-  Elf64_Word sh_link;			/* section header table index	*/
-  Elf64_Word sh_info;			/* extra information		*/
-  Elf64_Xword sh_addralign;		/* alignment constraints	*/
-  Elf64_Xword sh_entsize;		/* fixed size entries size	*/
-} Elf64_Shdr;
+struct __attribute__ ((packed)) Elf64_Shdr_s {	/* ELF64 section header	*/
+  Elf64_Word_t sh_name;			/* name of the section		*/
+  Elf64_Word_t sh_type;			/* section type			*/
+  Elf64_Xword_t sh_flags;		/* section flags and attributes	*/
+  Elf64_Addr_t sh_addr;			/* virtual memory address	*/
+  Elf64_Off_t sh_offset;		/* file byte offset		*/
+  Elf64_Xword_t sh_size;		/* section size in bytes	*/
+  Elf64_Word_t sh_link;			/* section header table index	*/
+  Elf64_Word_t sh_info;			/* extra information		*/
+  Elf64_Xword_t sh_addralign;		/* alignment constraints	*/
+  Elf64_Xword_t sh_entsize;		/* fixed size entries size	*/
+};
+typedef struct Elf64_Shdr_s Elf64_Shdr_t;
 
-typedef struct __attribute__ ((packed)) {	/* ELF32 sym tab entry	*/
-  Elf32_Word st_name;			/* symbol string table index	*/
-  Elf32_Addr st_value;			/* value of the symbol		*/
-  Elf32_Word st_size;			/* size of the symbol		*/
+struct __attribute__ ((packed)) Elf32_Sym_s {	/* ELF32 sym tab entry	*/
+  Elf32_Word_t st_name;			/* symbol string table index	*/
+  Elf32_Addr_t st_value;		/* value of the symbol		*/
+  Elf32_Word_t st_size;			/* size of the symbol		*/
   unsigned char st_info;		/* type and binding attributes	*/
   unsigned char st_other;		/* reserved			*/
-  Elf32_Half st_shndx;			/* section header index		*/
-} Elf32_Sym;
+  Elf32_Half_t st_shndx;		/* section header index		*/
+};
+typedef struct Elf32_Sym_s Elf32_Sym_t;
 
-typedef struct __attribute__ ((packed)) {	/* ELF64 sym tab entry	*/
-  Elf64_Word st_name;			/* symbol string table index	*/
+struct __attribute__ ((packed)) Elf64_Sym_s {	/* ELF64 sym tab entry	*/
+  Elf64_Word_t st_name;			/* symbol string table index	*/
   unsigned char st_info;		/* type and binding attributes	*/
   unsigned char st_other;		/* reserved			*/
-  Elf64_Half st_shndx;			/* section header index		*/
-  Elf64_Addr st_value;			/* value of the symbol		*/
-  Elf64_Xword st_size;			/* size of the symbol		*/
-} Elf64_Sym;
+  Elf64_Half_t st_shndx;		/* section header index		*/
+  Elf64_Addr_t st_value;		/* value of the symbol		*/
+  Elf64_Xword_t st_size;		/* size of the symbol		*/
+};
+typedef struct Elf64_Sym_s Elf64_Sym_t;
 
-typedef struct __attribute__ ((packed)) {	/* ELF32 REL entry	*/
-  Elf32_Addr r_offset;			/* address of reference		*/
-  Elf32_Word r_info;			/* symbol ind and type of reloc	*/
-} Elf32_Rel;
+struct __attribute__ ((packed)) Elf32_Rel_s {	/* ELF32 REL entry	*/
+  Elf32_Addr_t r_offset;		/* address of reference		*/
+  Elf32_Word_t r_info;			/* symbol ind and type of reloc	*/
+};
+typedef struct Elf32_Rel_s Elf32_Rel_t;
 
-typedef struct __attribute__ ((packed)) {	/* ELF64 REL entry	*/
-  Elf64_Addr r_offset;			/* address of reference		*/
-  Elf64_Xword r_info;			/* symbol ind and type of reloc	*/
-} Elf64_Rel;
+struct __attribute__ ((packed)) Elf64_Rel_s {	/* ELF64 REL entry	*/
+  Elf64_Addr_t r_offset;		/* address of reference		*/
+  Elf64_Xword_t r_info;			/* symbol ind and type of reloc	*/
+};
+typedef struct Elf64_Rel_s Elf64_Rel_t;
 
-typedef struct __attribute__ ((packed)) {	/* ELF32 RELA entry	*/
-  Elf32_Addr r_offset;			/* address of reference		*/
-  Elf32_Word r_info;			/* symbol ind and type of reloc	*/
-  Elf32_Sword r_addend;			/* constant part of expression	*/
-} Elf32_Rela;
+struct __attribute__ ((packed)) Elf32_Rela_s {	/* ELF32 RELA entry	*/
+  Elf32_Addr_t r_offset;		/* address of reference		*/
+  Elf32_Word_t r_info;			/* symbol ind and type of reloc	*/
+  Elf32_Sword_t r_addend;		/* constant part of expression	*/
+};
+typedef struct Elf32_Rela_s Elf32_Rela_t;
 
-typedef struct __attribute__ ((packed)) {	/* ELF64 RELA entry	*/
-  Elf64_Addr r_offset;			/* address of reference		*/
-  Elf64_Xword r_info;			/* symbol ind and type of reloc	*/
-  Elf64_Sxword r_addend;		/* constant part of expression	*/
-} Elf64_Rela;
+struct __attribute__ ((packed)) Elf64_Rela_s {	/* ELF64 RELA entry	*/
+  Elf64_Addr_t r_offset;		/* address of reference		*/
+  Elf64_Xword_t r_info;			/* symbol ind and type of reloc	*/
+  Elf64_Sxword_t r_addend;		/* constant part of expression	*/
+};
+typedef struct Elf64_Rela_s Elf64_Rela_t;
 
-typedef struct __attribute__ ((packed)) {	/* ELF32 program header	*/
-  Elf32_Word p_type;			/* type of segment		*/
-  Elf32_Off p_offset;			/* offset in file		*/
-  Elf32_Addr p_vaddr;			/* virtual address in memory	*/
-  Elf32_Addr p_paddr;			/* reserved			*/
-  Elf32_Word p_filesz;			/* size of segment in file	*/
-  Elf32_Word p_memsz;			/* size of segment in memory	*/
-  Elf32_Word p_flags;			/* segment attributes		*/
-  Elf32_Word p_align;			/* alignment of segment		*/
-} Elf32_Phdr;
+struct __attribute__ ((packed)) Elf32_Phdr_s {	/* ELF32 program header	*/
+  Elf32_Word_t p_type;			/* type of segment		*/
+  Elf32_Off_t p_offset;			/* offset in file		*/
+  Elf32_Addr_t p_vaddr;			/* virtual address in memory	*/
+  Elf32_Addr_t p_paddr;			/* reserved			*/
+  Elf32_Word_t p_filesz;		/* size of segment in file	*/
+  Elf32_Word_t p_memsz;			/* size of segment in memory	*/
+  Elf32_Word_t p_flags;			/* segment attributes		*/
+  Elf32_Word_t p_align;			/* alignment of segment		*/
+};
+typedef struct Elf32_Phdr_s Elf32_Phdr_t;
 
-typedef struct __attribute__ ((packed)) {	/* ELF64 program header	*/
-  Elf64_Word p_type;			/* type of segment		*/
-  Elf64_Word p_flags;			/* segment attributes		*/
-  Elf64_Off p_offset;			/* offset in file		*/
-  Elf64_Addr p_vaddr;			/* virtual address in memory	*/
-  Elf64_Addr p_paddr;			/* reserved			*/
-  Elf64_Xword p_filesz;			/* size of segment in file	*/
-  Elf64_Xword p_memsz;			/* size of segment in memory	*/
-  Elf64_Xword p_align;			/* alignment of segment		*/
-} Elf64_Phdr;
+struct __attribute__ ((packed)) Elf64_Phdr_s {	/* ELF64 program header	*/
+  Elf64_Word_t p_type;			/* type of segment		*/
+  Elf64_Word_t p_flags;			/* segment attributes		*/
+  Elf64_Off_t p_offset;			/* offset in file		*/
+  Elf64_Addr_t p_vaddr;			/* virtual address in memory	*/
+  Elf64_Addr_t p_paddr;			/* reserved			*/
+  Elf64_Xword_t p_filesz;		/* size of segment in file	*/
+  Elf64_Xword_t p_memsz;		/* size of segment in memory	*/
+  Elf64_Xword_t p_align;		/* alignment of segment		*/
+};
+typedef struct Elf64_Phdr_s Elf64_Phdr_t;
 
-typedef struct __attribute__ ((packed)) {	/* ELF32 dynamic struct	*/
-  Elf32_Sword dtag;			/* type of entry		*/
+struct __attribute__ ((packed)) Elf32_Dyn_s {	/* ELF32 dynamic struct	*/
+  Elf32_Sword_t dtag;			/* type of entry		*/
   union __attribute__ ((packed)) {
-    Elf32_Word d_val;			/* integer values		*/
-    Elf32_Addr d_ptr;			/* program virtual addresses	*/
+    Elf32_Word_t d_val;			/* integer values		*/
+    Elf32_Addr_t d_ptr;			/* program virtual addresses	*/
   } d_un;
-} Elf32_Dyn;
+};
+typedef struct Elf32_Dyn_s Elf32_Dyn_t;
 
-typedef struct __attribute__ ((packed)) {	/* ELF64 dynamic struct	*/
-  Elf64_Sxword dtag;			/* type of entry		*/
+struct __attribute__ ((packed)) Elf64_Dyn_s {	/* ELF64 dynamic struct	*/
+  Elf64_Sxword_t dtag;			/* type of entry		*/
   union __attribute__ ((packed)) {
-    Elf64_Xword d_val;			/* integer values		*/
-    Elf64_Addr d_ptr;			/* program virtual addresses	*/
+    Elf64_Xword_t d_val;		/* integer values		*/
+    Elf64_Addr_t d_ptr;			/* program virtual addresses	*/
   } d_un;
-} Elf64_Dyn;
+};
+typedef struct Elf64_Dyn_s Elf64_Dyn_t;
 
 #define ELFTYPE_NONE			0
 #define ELFTYPE_I386			1
 #define ELFTYPE_X86_64			2
 
-int strtest(Elf64_Off offset, const char *name);
-void loadprogheaders(Elf64_Off phoff, Elf64_Half phentsize, Elf64_Half phnum);
-void getsection(Elf64_Off shoff, Elf64_Half shentsize, Elf64_Half shnum,
-  Elf64_Half index, Elf64_Word *sh_type, Elf64_Off *sh_offset,
-  Elf64_Xword *sh_size, Elf64_Word *sh_link);
-void getsym(Elf64_Off offset, Elf64_Half symesize, Elf64_Xword symnum,
-  Elf64_Xword index, Elf64_Word *st_name, Elf64_Addr *st_value,
-  Elf64_Xword *st_size, unsigned char *st_info, unsigned char *st_other,
-  Elf64_Half *st_shndx);
-Elf64_Addr getrmentry(Elf64_Off shoff, Elf64_Half shentsize, Elf64_Half shnum);
+int strtest(Elf64_Off_t offset, const char *name);
+void loadprogheaders(Elf64_Off_t phoff, Elf64_Half_t phentsize,
+  Elf64_Half_t phnum);
+void getsection(Elf64_Off_t shoff, Elf64_Half_t shentsize, Elf64_Half_t shnum,
+  Elf64_Half_t index, Elf64_Word_t *sh_type, Elf64_Off_t *sh_offset,
+  Elf64_Xword_t *sh_size, Elf64_Word_t *sh_link);
+void getsym(Elf64_Off_t offset, Elf64_Half_t symesize, Elf64_Xword_t symnum,
+  Elf64_Xword_t index, Elf64_Word_t *st_name, Elf64_Addr_t *st_value,
+  Elf64_Xword_t *st_size, unsigned char *st_info, unsigned char *st_other,
+  Elf64_Half_t *st_shndx);
+Elf64_Addr_t getrmentry(Elf64_Off_t shoff, Elf64_Half_t shentsize,
+  Elf64_Half_t shnum);
 
 /* test string against file content at file offset (string table)
 input:	file offset
 	pointer to string
 output:	1 = strings equal, 0 = strings not equal
 */
-int strtest(Elf64_Off offset, const char *name) {
+int strtest(Elf64_Off_t offset, const char *name) {
   char c;
 
   if (offset == 0) {
@@ -403,20 +419,21 @@ input:	offset of program header table in Elf file
 	number of entries
 output:	-
 */
-void loadprogheaders(Elf64_Off phoff, Elf64_Half phentsize, Elf64_Half phnum) {
+void loadprogheaders(Elf64_Off_t phoff, Elf64_Half_t phentsize,
+  Elf64_Half_t phnum) {
   union {
-    Elf32_Phdr p32;
-    Elf64_Phdr p64;
+    Elf32_Phdr_t p32;
+    Elf64_Phdr_t p64;
   } phdr;
-  Elf64_Word p_type;			/* type of segment		*/
-  Elf64_Word p_flags;			/* segment attributes		*/
-  Elf64_Off p_offset;			/* offset in file		*/
-  Elf64_Addr p_vaddr;			/* virtual address in memory	*/
-  Elf64_Addr p_paddr;			/* reserved			*/
-  Elf64_Xword p_filesz;			/* size of segment in file	*/
-  Elf64_Xword p_memsz;			/* size of segment in memory	*/
-  Elf64_Xword p_align;			/* alignment of segment		*/
-  Elf64_Half i;
+  Elf64_Word_t p_type;			/* type of segment		*/
+  Elf64_Word_t p_flags;			/* segment attributes		*/
+  Elf64_Off_t p_offset;			/* offset in file		*/
+  Elf64_Addr_t p_vaddr;			/* virtual address in memory	*/
+  Elf64_Addr_t p_paddr;			/* reserved			*/
+  Elf64_Xword_t p_filesz;		/* size of segment in file	*/
+  Elf64_Xword_t p_memsz;		/* size of segment in memory	*/
+  Elf64_Xword_t p_align;		/* alignment of segment		*/
+  Elf64_Half_t i;
 
   if (phoff == 0 || phnum == 0) {
     stoperror("No program header found.");
@@ -426,7 +443,7 @@ void loadprogheaders(Elf64_Off phoff, Elf64_Half phentsize, Elf64_Half phnum) {
     readfile(phoff + i * phentsize, phentsize, &phdr);
 
     switch (phentsize) {
-      case sizeof(Elf32_Phdr):
+      case sizeof(Elf32_Phdr_t):
         p_type = phdr.p32.p_type;
         p_flags = phdr.p32.p_flags;
         p_offset = phdr.p32.p_offset;
@@ -436,7 +453,7 @@ void loadprogheaders(Elf64_Off phoff, Elf64_Half phentsize, Elf64_Half phnum) {
         p_memsz = phdr.p32.p_memsz;
         p_align = phdr.p32.p_align;
         break;
-      case sizeof(Elf64_Phdr):
+      case sizeof(Elf64_Phdr_t):
         p_type = phdr.p64.p_type;
         p_flags = phdr.p64.p_flags;
         p_offset = phdr.p64.p_offset;
@@ -451,10 +468,10 @@ void loadprogheaders(Elf64_Off phoff, Elf64_Half phentsize, Elf64_Half phnum) {
       break;
     }
 
-printf(" p_type: %llu, p_offset: 0x%llx, p_vaddr: 0x%llx, p_paddr: 0x%llx, "	//
-"p_filesz: 0x%llx, p_memsz: 0x%llx, p_flags: %llu, p_align: %llu\n",		//
-(u64_t)p_type, (u64_t)p_offset, (u64_t)p_vaddr, (u64_t)p_paddr, 		//
-(u64_t)p_filesz, (u64_t)p_memsz, (u64_t)p_flags, (u64_t)p_align);		//
+printf(" p_type: %llu, p_offset: 0x%llx, p_vaddr: 0x%llx, p_paddr: 0x%llx, "	/* // */
+"p_filesz: 0x%llx, p_memsz: 0x%llx, p_flags: %llu, p_align: %llu\n",		/* // */
+(u64_t)p_type, (u64_t)p_offset, (u64_t)p_vaddr, (u64_t)p_paddr, 		/* // */
+(u64_t)p_filesz, (u64_t)p_memsz, (u64_t)p_flags, (u64_t)p_align);		/* // */
 
   }
 }
@@ -471,12 +488,12 @@ input:	offset of section table in file
 output:	type, offset, size, link filled with data
 	halts on error
 */
-void getsection(Elf64_Off shoff, Elf64_Half shentsize, Elf64_Half shnum,
-  Elf64_Half index, Elf64_Word *sh_type, Elf64_Off *sh_offset,
-  Elf64_Xword *sh_size, Elf64_Word *sh_link) {
+void getsection(Elf64_Off_t shoff, Elf64_Half_t shentsize, Elf64_Half_t shnum,
+  Elf64_Half_t index, Elf64_Word_t *sh_type, Elf64_Off_t *sh_offset,
+  Elf64_Xword_t *sh_size, Elf64_Word_t *sh_link) {
   union {
-    Elf32_Shdr s32;
-    Elf64_Shdr s64;
+    Elf32_Shdr_t s32;
+    Elf64_Shdr_t s64;
   } shdr;
 
   if (index >= shnum) {			/* we are in the table?		*/
@@ -486,13 +503,13 @@ void getsection(Elf64_Off shoff, Elf64_Half shentsize, Elf64_Half shnum,
   readfile(shoff + index * shentsize, shentsize, &shdr);	/* read	*/
 
   switch (shentsize) {			/* 32 or 64 bits?		*/
-    case sizeof(Elf32_Shdr):
+    case sizeof(Elf32_Shdr_t):
       *sh_type = shdr.s32.sh_type;
       *sh_offset = shdr.s32.sh_offset;
       *sh_size = shdr.s32.sh_size;
       *sh_link = shdr.s32.sh_link;
       break;
-    case sizeof(Elf64_Shdr):
+    case sizeof(Elf64_Shdr_t):
       *sh_type = shdr.s64.sh_type;
       *sh_offset = shdr.s64.sh_offset;
       *sh_size = shdr.s64.sh_size;
@@ -516,13 +533,13 @@ input:	offset of section table in file
 output:	type, offset, size, link filled with data
 	halts on error
 */
-void getsym(Elf64_Off offset, Elf64_Half symesize, Elf64_Xword symnum,
-  Elf64_Xword index, Elf64_Word *st_name, Elf64_Addr *st_value,
-  Elf64_Xword *st_size, unsigned char *st_info, unsigned char *st_other,
-  Elf64_Half *st_shndx) {
+void getsym(Elf64_Off_t offset, Elf64_Half_t symesize, Elf64_Xword_t symnum,
+  Elf64_Xword_t index, Elf64_Word_t *st_name, Elf64_Addr_t *st_value,
+  Elf64_Xword_t *st_size, unsigned char *st_info, unsigned char *st_other,
+  Elf64_Half_t *st_shndx) {
   union {
-    Elf32_Sym s32;
-    Elf64_Sym s64;
+    Elf32_Sym_t s32;
+    Elf64_Sym_t s64;
   } sym;
 
   if (index >= symnum) {		/* we are in the table?		*/
@@ -532,7 +549,7 @@ void getsym(Elf64_Off offset, Elf64_Half symesize, Elf64_Xword symnum,
   readfile(offset + index * symesize, symesize, &sym);		/* read	*/
 
   switch (symesize) {			/* 32 or 64 bits?		*/
-    case sizeof(Elf32_Sym):
+    case sizeof(Elf32_Sym_t):
       *st_name = sym.s32.st_name;
       *st_value = sym.s32.st_value;
       *st_size = sym.s32.st_size;
@@ -540,7 +557,7 @@ void getsym(Elf64_Off offset, Elf64_Half symesize, Elf64_Xword symnum,
       *st_other = sym.s32.st_other;
       *st_shndx = sym.s32.st_shndx;
       break;
-    case sizeof(Elf64_Sym):
+    case sizeof(Elf64_Sym_t):
       *st_name = sym.s64.st_name;
       *st_value = sym.s64.st_value;
       *st_size = sym.s64.st_size;
@@ -561,17 +578,18 @@ input:	offset of section header table in Elf file
 output:	real mode entry point
 	halts on error
 */
-Elf64_Addr getrmentry(Elf64_Off shoff, Elf64_Half shentsize, Elf64_Half shnum) {
+Elf64_Addr_t getrmentry(Elf64_Off_t shoff, Elf64_Half_t shentsize,
+  Elf64_Half_t shnum) {
   if (shoff == 0 || shnum == 0) {
     stoperror("No section table found.");
   }
 
-  Elf64_Half i;
+  Elf64_Half_t i;
   for (i = 0; i < shnum; i ++) {	/* read all sections		*/
-    Elf64_Word sh_type;			/* section data			*/
-    Elf64_Off sh_offset;
-    Elf64_Xword sh_size;
-    Elf64_Word sh_link;
+    Elf64_Word_t sh_type;		/* section data			*/
+    Elf64_Off_t sh_offset;
+    Elf64_Xword_t sh_size;
+    Elf64_Word_t sh_link;
 
     getsection(shoff, shentsize, shnum, i, &sh_type, &sh_offset, &sh_size,
       &sh_link);
@@ -582,12 +600,12 @@ Elf64_Addr getrmentry(Elf64_Off shoff, Elf64_Half shentsize, Elf64_Half shnum) {
       }
     }
     else if (sh_type == SHT_SYMTAB) {	/* symbol table found		*/
-      Elf64_Xword j;
+      Elf64_Xword_t j;
       int symesize = 0;			/* sym entry size in bytes	*/
-      Elf64_Word str_sh_type;		/* string table			*/
-      Elf64_Off str_sh_offset;
-      Elf64_Xword str_sh_size;
-      Elf64_Word str_sh_link;
+      Elf64_Word_t str_sh_type;		/* string table			*/
+      Elf64_Off_t str_sh_offset;
+      Elf64_Xword_t str_sh_size;
+      Elf64_Word_t str_sh_link;
 
       if (sh_link == SHN_UNDEF) {	/* there is a string table?	*/
         stoperror("No string table for the symbol table.");
@@ -601,21 +619,21 @@ Elf64_Addr getrmentry(Elf64_Off shoff, Elf64_Half shentsize, Elf64_Half shnum) {
 
       switch (shentsize) {		/* Elf32 or Elf64?		*/
         default:
-        case sizeof(Elf32_Shdr):
-          symesize = sizeof(Elf32_Sym);
+        case sizeof(Elf32_Shdr_t):
+          symesize = sizeof(Elf32_Sym_t);
           break;
-        case sizeof(Elf64_Shdr):
-          symesize = sizeof(Elf64_Sym);
+        case sizeof(Elf64_Shdr_t):
+          symesize = sizeof(Elf64_Sym_t);
           break;
       }
 
       for (j = 0; j < sh_size / symesize; j ++) { /* check symbols	*/
-        Elf64_Word st_name;		/* symbol string table index	*/
-        Elf64_Addr st_value;		/* value of the symbol		*/
-        Elf64_Xword st_size;		/* size of the symbol		*/
+        Elf64_Word_t st_name;		/* symbol string table index	*/
+        Elf64_Addr_t st_value;		/* value of the symbol		*/
+        Elf64_Xword_t st_size;		/* size of the symbol		*/
         unsigned char st_info;		/* type and binding attributes	*/
         unsigned char st_other;		/* reserved			*/
-        Elf64_Half st_shndx;		/* section header index		*/
+        Elf64_Half_t st_shndx;		/* section header index		*/
 
         getsym(sh_offset, symesize, sh_size / symesize,	/* get symbol	*/
           j, &st_name, &st_value, &st_size, &st_info, &st_other, &st_shndx);
@@ -636,16 +654,16 @@ output:	1 = loaded, 0 = not loaded
 */
 int loadelf(farptr_t *entry) {
   unsigned char elftype;		/* ELF file type: i386/x86-64	*/
-  Elf32_Ehdr ehdr32;			/* ELF32 header			*/
-  Elf64_Ehdr ehdr64;			/* ELF64 header			*/
-  Elf64_Off phoff;			/* program header offset	*/
-  Elf64_Half phentsize;			/* size of program header entry	*/
-  Elf64_Half phnum;			/* # of program header entries	*/
-  Elf64_Off shoff;			/* section header offset	*/
-  Elf64_Half shentsize;			/* size of section header entry	*/
-  Elf64_Half shnum;			/* # of section header entries	*/
+  Elf32_Ehdr_t ehdr32;			/* ELF32 header			*/
+  Elf64_Ehdr_t ehdr64;			/* ELF64 header			*/
+  Elf64_Off_t phoff;			/* program header offset	*/
+  Elf64_Half_t phentsize;		/* size of program header entry	*/
+  Elf64_Half_t phnum;			/* # of program header entries	*/
+  Elf64_Off_t shoff;			/* section header offset	*/
+  Elf64_Half_t shentsize;		/* size of section header entry	*/
+  Elf64_Half_t shnum;			/* # of section header entries	*/
 
-// -----------------------------------------------------------------------------
+/* // ------------------------------------------------------------------	*/
   printf("ELF loader: ");
 
   readfile(0, EI_NIDENT, &ehdr32.e_ident);	/* check ELF magic val	*/
@@ -659,14 +677,14 @@ int loadelf(farptr_t *entry) {
   elftype = ELFTYPE_NONE;
   if (ehdr32.e_ident[EI_CLASS] == ELFCLASS32 &&	/* read ELF header	*/
     ehdr32.e_ident[EI_DATA] == ELFDATA2LSB) {
-    readfile(0, sizeof(Elf32_Ehdr), &ehdr32);
+    readfile(0, sizeof(Elf32_Ehdr_t), &ehdr32);
     if (ehdr32.e_machine == EM_386) {
       elftype = ELFTYPE_I386;
     }
   }
   else if (ehdr32.e_ident[EI_CLASS] == ELFCLASS64 &&
     ehdr32.e_ident[EI_DATA] == ELFDATA2LSB) {
-    readfile(0, sizeof(Elf64_Ehdr), &ehdr64);
+    readfile(0, sizeof(Elf64_Ehdr_t), &ehdr64);
     if (ehdr64.e_machine == EM_X86_64) {
       elftype = ELFTYPE_X86_64;
     }
@@ -680,7 +698,7 @@ int loadelf(farptr_t *entry) {
       if (ehdr32.e_version != EV_CURRENT) {
         stoperror("Bad ELF version.");
       }
-      if (ehdr32.e_ehsize != sizeof(Elf32_Ehdr)) {
+      if (ehdr32.e_ehsize != sizeof(Elf32_Ehdr_t)) {
         stoperror("Bad ELF header.");
       }
       phoff = ehdr32.e_phoff;
@@ -697,7 +715,7 @@ int loadelf(farptr_t *entry) {
       if (ehdr64.e_version != EV_CURRENT) {
         stoperror("Bad ELF version.");
       }
-      if (ehdr64.e_ehsize != sizeof(Elf64_Ehdr)) {
+      if (ehdr64.e_ehsize != sizeof(Elf64_Ehdr_t)) {
         stoperror("Bad ELF header.");
       }
       phoff = ehdr64.e_phoff;
@@ -715,17 +733,17 @@ int loadelf(farptr_t *entry) {
 
 
 
-  printf("e_type: %llu, e_machine: %u, e_version: %lu, e_entry: 0x%llx, type: %u\n",	//
-    (u64_t)ehdr32.e_type, ehdr32.e_machine, ehdr32.e_version, ehdr32.e_entry, elftype);	//
-  printf("e_phoff: 0x%llx, e_phentsize: %u, e_phnum: %u\n", phoff, phentsize, phnum);	//
- printf("e_shoff: 0x%llx, e_shentsize: %u, e_shnum: %u\n", shoff, shentsize, shnum);	//
-  printf(" %u, %u ", sizeof(Elf32_Phdr), sizeof(Elf64_Phdr));				//
+  printf("e_type: %llu, e_machine: %u, e_version: %lu, e_entry: 0x%llx, type: %u\n",	/* // */
+    (u64_t)ehdr32.e_type, ehdr32.e_machine, ehdr32.e_version, ehdr32.e_entry, elftype);	/* // */
+  printf("e_phoff: 0x%llx, e_phentsize: %u, e_phnum: %u\n", phoff, phentsize, phnum);	/* // */
+ printf("e_shoff: 0x%llx, e_shentsize: %u, e_shnum: %u\n", shoff, shentsize, shnum);	/* // */
+  printf(" %u, %u ", sizeof(Elf32_Phdr_t), sizeof(Elf64_Phdr_t));			/* // */
 
 
 
   loadprogheaders(phoff, phentsize, phnum);
   getrmentry(shoff, shentsize, shnum);
-// --------------------------------------------------------------------------------------
+/* // -------------------------------------------------------------------------------------- */
 
-  return entry == NULL;		//
+  return entry == NULL;		/* // */
 }

@@ -140,7 +140,7 @@ __asm__ (".code16gcc");				/* compile 16 bit code	*/
 
 typedef u32_t blocknum_t;		/* block number type		*/
 
-typedef struct {			/* Ext2 file system parameters	*/
+struct ext2prm_s {			/* Ext2 file system parameters	*/
   u32_t revlevel;			/* revision level		*/
   u16_t minorrevlevel;			/* minor revision level		*/
   u32_t totalblockscount;		/* total number of blocks	*/
@@ -154,9 +154,10 @@ typedef struct {			/* Ext2 file system parameters	*/
   u32_t fincomp;			/* incompatible features	*/
   u32_t frocomp;			/* read only features		*/
   u16_t bgdtstart;	/* byte address of block group descriptor table	*/
-} ext2prm_t;
+};
+typedef struct ext2prm_s ext2prm_t;
 
-typedef struct __attribute__ ((packed)) {	/* Ext2 superblock	*/
+struct __attribute__ ((packed)) superblock_s {	/* Ext2 superblock	*/
   u32_t s_inodes_count;		/* total number of inodes		*/
   u32_t s_blocks_count;		/* total number of blocks		*/
   u32_t	s_r_blocks_count;  /* number of block reserved for superuser	*/
@@ -209,9 +210,10 @@ typedef struct __attribute__ ((packed)) {	/* Ext2 superblock	*/
 				/* -- Other options --			*/
   u32_t s_default_mount_options; /* the default mount options		*/
   u32_t s_first_meta_bg;	/* block group ID of the 1st meta block group */
-} superblock_t;
+};
+typedef struct superblock_s superblock_t;
 
-typedef struct __attribute__ ((packed)) {	/* block group descr	*/
+struct __attribute__ ((packed)) bgdt_s {	/* block group desc	*/
   u32_t bg_block_bitmap;	/* first block of the "block bitmap"	*/
   u32_t bg_inode_bitmap;	/* first block of the "inode bitmap"	*/
   u32_t bg_inode_table;		/* first block of the "inode table"	*/
@@ -220,9 +222,10 @@ typedef struct __attribute__ ((packed)) {	/* block group descr	*/
   u16_t bg_used_dirs_count;	/* number of inodes allocated to dir.s	*/
   u16_t bg_pad;			/* padding on a 32bit boundary		*/
   u8_t bg_reserved[12];		/* reserved space for future revisions	*/
-} bgdt_t;
+};
+typedef struct bgdt_s bgdt_t;
 
-typedef struct __attribute__ ((packed)) {	/* inode structure	*/
+struct __attribute__ ((packed)) inode_s {	/* i-node structure	*/
   u16_t i_mode;			/* the format and the access rights	*/
   u16_t i_uid;			/* 16bit user id			*/
   u32_t i_size;			/* lower 32-bit of the file size	*/
@@ -241,15 +244,17 @@ typedef struct __attribute__ ((packed)) {	/* inode structure	*/
   u32_t i_dir_acl;	/* rev 1: for reg. files: high 32 bits of size	*/
   u32_t i_faddr;	/* location of the file fragment, always 0	*/
   u8_t i_osd2[12];		/* OS dependant structure		*/
-} inode_t;
+};
+typedef struct inode_s inode_t;
 
-typedef struct __attribute__ ((packed)) {	/* directory entry	*/
+struct __attribute__ ((packed)) direntry_s {	/* directory entry	*/
   u32_t inode;		/* i-node number of file entry, 0 = not used	*/
   u16_t rec_len;		/* next entry from start of this entry	*/
   u8_t name_len;		/* length of the name in bytes		*/
   u8_t file_type;		/* value used to indicate file type	*/
   u8_t name[];			/* name of the entry			*/
-} direntry_t;
+};
+typedef struct direntry_s direntry_t;
 
 static inode_t g_inode;			/* global i-node (opened file)	*/
 static inode_t *g_pinode;		/* pointer to global i-node	*/

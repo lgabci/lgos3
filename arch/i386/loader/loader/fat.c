@@ -47,7 +47,7 @@ __asm__ (".code16gcc");				/* compile 16 bit code	*/
 
 #define BS_EXTBOOTSIG		0x29	/* etended boot signature	*/
 
-typedef struct __attribute__ ((packed)) {	/* FAT12/16 bootsector	*/
+struct __attribute__ ((packed)) bootsect16_s {	/* FAT12/16 boot sector	*/
   u8_t bs_oemname[8];
   u16_t bpb_bytspersec;
   u8_t bpb_secperclus;
@@ -67,9 +67,10 @@ typedef struct __attribute__ ((packed)) {	/* FAT12/16 bootsector	*/
   u32_t bs_volid;
   u8_t bs_vollab[11];
   u8_t bs_filsystype[8];
-} bootsect16_t;
+};
+typedef struct bootsect16_s bootsect16_t;
 
-typedef struct __attribute__ ((packed)) {	/* FAT32 bootsector	*/
+struct __attribute__ ((packed)) bootsect32_s {	/* FAT32 bootsector	*/
   u8_t bs_oemname[8];
   u16_t bpb_bytspersec;
   u8_t bpb_secperclus;
@@ -96,14 +97,16 @@ typedef struct __attribute__ ((packed)) {	/* FAT32 bootsector	*/
   u32_t bs_volid;
   u8_t bs_vollab[11];
   u8_t bs_filsystype[8];
-} bootsect32_t;
+};
+typedef struct bootsect32_s bootsect32_t;
 
-typedef union {
+union bootsect_u {
   bootsect16_t b16;
   bootsect32_t b32;
-} bootsect_t;
+};
+typedef union bootsect_u bootsect_t;
 
-typedef struct __attribute__ ((packed)) {
+struct __attribute__ ((packed)) direntry_s {
   u8_t dir_name[11];			/* entry name		*/
   u8_t dir_attr;			/* attributes		*/
   u8_t dir_ntres;			/* Win NT use this	*/
@@ -116,9 +119,10 @@ typedef struct __attribute__ ((packed)) {
   u16_t dir_wrtdate;			/* last write date	*/
   u16_t dir_fstcluslo;			/* first clust lo word	*/
   u32_t dir_filesize;			/* 32 bit file size	*/
-} direntry_t;
+};
+typedef struct direntry_s direntry_t;
 
-typedef struct __attribute__ ((packed)) {
+struct __attribute__ ((packed)) longdirentry_s {
   u8_t ldir_ord;			/* order		*/
   u16_t ldir_name1[5];			/* long name 1-5 char	*/
   u8_t ldir_attr;			/* attributes		*/
@@ -127,9 +131,10 @@ typedef struct __attribute__ ((packed)) {
   u16_t ldir_name2[6];			/* long name 6-11 char	*/
   u16_t ldir_fstcluslo;		/* low cluster, must be 0	*/
   u16_t ldir_name3[2];			/* long name 12-13 char	*/
-} longdirentry_t;
+};
+typedef struct longdirentry_s longdirentry_t;
 
-typedef struct {
+struct fatprm_s {
   u32_t bytesperclus;			/* cluster size in bytes	*/
   u32_t fatoffs;	/* start of FAT in partition, 2nd cluster	*/
   u64_t rootdiroffs;	/* only FAT1/16, root dir offset in partition	*/
@@ -140,7 +145,8 @@ typedef struct {
   u8_t fattype;
   u32_t eoc;
   u32_t bad;
-} fatprm_t;
+};
+typedef struct fatprm_s fatprm_t;
 
 static fatprm_t fatprm;
 static direntry_t g_direntry;	/* global dir entry (opened file)	*/

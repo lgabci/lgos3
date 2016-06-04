@@ -18,30 +18,34 @@ __asm__ (".code16gcc");				/* compile 16 bit code	*/
 #define MB_OWNCHKSUM2		'O'
 #define MB_OWNCHKSUM3		'S'
 
-typedef struct __attribute__ ((packed)) {	/* required parameters	*/
+struct __attribute__ ((packed)) req_s {		/* required parameters	*/
     u32_t magic;				/* magic value		*/
     u32_t flags;				/* flags		*/
     u32_t checksum;				/* chekcsum		*/
-} req_t;
+};
+typedef struct req_s req_t;
 
-typedef struct __attribute__ ((packed)) {	/* optional parameters	*/
+struct __attribute__ ((packed)) opt_s {	/* optional parameters		*/
     u32_t header_addr;			/* phys location of header	*/
     u32_t load_addr;			/* phys addr of text segment	*/
     u32_t load_end_addr;		/* phys addr of end of data seg	*/
     u32_t bss_end_addr;			/* phys addr of end of bss seg	*/
     u32_t entry_addr;			/* phys addr of entry point	*/
-} opt_t;
+};
+typedef struct opt_s opt_t;
 
-typedef struct __attribute__ ((packed)) {	/* own extension	*/
+struct __attribute__ ((packed)) own_s {	/* own extension		*/
     u8_t ext_chksum[4];			/* own extension for real mode	*/
     u32_t real_entry;			/* real mode entry point	*/
-} own_t;
+};
+typedef struct own_s own_t;
 
-typedef struct __attribute__ ((packed)) {	/* mb header	*/
+struct __attribute__ ((packed)) mbheader_s {	/* mb header		*/
   req_t req;
   opt_t opt;
   own_t own;
-} mbheader_t;
+};
+typedef struct  mbheader_s mbheader_t;
 
 u32_t getmbheader(mbheader_t *mbh);
 

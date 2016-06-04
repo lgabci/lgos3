@@ -158,16 +158,18 @@ static void writechr(u8_t ch) {
 	"xorw	%%cx, %%cx		\n"	/* upper left corner	*/
 	"movb	%[maxrow], %%dh		\n"	/* row of low right cor	*/
 	"movb	%[maxcol], %%dl		\n"	/* col of low right cor	*/
-	"pushw	%%ds			\n"	/* BIOS bug destroys DS	*/
+	"pushw	%%bp			\n"	/* BIOS bug destroys BP	*/
+	"pushw	%%ds			\n"	/* BIOS bug clears DS	*/
 	"int	%[int_video]		\n"	/* mod: -		*/
 	"popw	%%ds			\n"
+	"popw	%%bp			\n"
 	:
 	: [vid_scrollup]	"i" (VID_SCROLLUP),
 	  [color]		"i" (CLR_BLACK << 4 | CLR_GRAY),
 	  [maxrow]		"m" (maxrow),
 	  [maxcol]		"m" (maxcol),
 	  [int_video]		"i" (INT_VIDEO)
-	: "cc", "ax", "bh", "cx", "dx", "bp"	/* BIOS bug destroys BP	*/
+	: "cc", "ax", "bh", "cx", "dx"
     );
   }
 
