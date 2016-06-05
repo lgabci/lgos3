@@ -37,8 +37,7 @@ void loadkernel() {
   }
 
   {					/* read config file	*/
-			/* // dinamikus memória foglalás a path részére */
-    char path[256];			/* kernel path		*/
+    char path[cfsize + 1];		/* kernel path		*/
     char *params;			/* kernel parameters	*/
 
     readfile(0, cfsize, &path);		/* read path & params	*/

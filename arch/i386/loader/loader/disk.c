@@ -316,7 +316,7 @@ static void initdisk(const char *dev) {
 	  "i" (DISK_EXTGETPRM),		/* %2 */
 	  "m" (disk),			/* %3 */
 	  "m" (extprms)			/* %4 */
-	: "cc", "ah", "dl", "di", "memory"
+	: "cc", "ah", "dl", "si", "memory"
       );
       diskerror(status);			/* succesful?		*/
 
