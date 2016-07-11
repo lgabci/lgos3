@@ -1,4 +1,3 @@
-#!/usr/bin/colormake
 # LGOS3 makefile
 
 ARCH ?= $(shell uname -m)
