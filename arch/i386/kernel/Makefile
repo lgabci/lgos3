@@ -8,7 +8,7 @@ CC := gcc
 CCFLAGS := -m32 -march=$(ARCH) -S -O2 -nostdlib -nostdinc -ffreestanding -std=c99 -pedantic -Werror -Wall -Wextra -fomit-frame-pointer -fno-asynchronous-unwind-tables
 
 LD := ld
-LDFLAGS :=
+LDFLAGS := -m elf_i386
 
 .DELETE_ON_ERROR :
 .SUFFIXES :
