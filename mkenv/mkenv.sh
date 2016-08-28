@@ -45,20 +45,20 @@ if [ ! -e /etc/debian_version ]; then
 fi
 
 # get user name, home dir and install dir
-USERNAME="$(who am i | awk '{print $1}')"
+USERNAME=$(who am i | awk '{print $1}')
 if [ -z "$USERNAME" ]; then
   echo "Username not found." >&2
   exit 1
 fi
 
-HOMEDIR="$(awk -F : '($1 == "'"$USERNAME"'") {print $6}' /etc/passwd)"
+HOMEDIR=$(awk -F : '($1 == "'"$USERNAME"'") {print $6}' /etc/passwd)
 if [ -z "$HOMEDIR" ]; then
   echo "Can not found user's home dir." >&2
   exit 1
 fi
 HOMEDIR="${HOMEDIR%/}"
 
-INSTALLDIR="$(readlink -m $(dirname $0)/..)"
+INSTALLDIR=$(readlink -m $(dirname $0)/..)
 INSTALLDIR="${INSTALLDIR#$HOMEDIR/}"
 
 # get text to write into files
