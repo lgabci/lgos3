@@ -342,7 +342,7 @@ fi'
 
 # install packages
 pkgnames="sudo vim mc screen git gcc gcc-doc gdb gdb-doc logapp make make-doc qemu dosfstools"
-installedpkgs="$(dpkg -l | awk 'BEGIN {FS = "[ :]+"; SEP = "";} { if ($1 == "ii") {printf("%s%s", SEP, $2); SEP = "\|"}}')"
+installedpkgs=$(dpkg -l | awk 'BEGIN {FS = "[ :]+"; SEP = "";} { if ($1 == "ii") {printf("%s%s", SEP, $2); SEP = "\\|"}}')
 pkgnames=$(echo "$pkgnames" | sed -e "s/\b\($installedpkgs\)\b *//g")
 if [ -n "$pkgnames" ]; then
   apt-get -y install $pkgnames
