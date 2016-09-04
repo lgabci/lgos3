@@ -1,70 +1,151 @@
 #!/bin/bash
 set -e
 
+# git user name and git email address
 GITUSER="lgabci"
 GITEMAIL="gl12qw@gmail.com"
 
-ARCHIVE="$1"
-case "$ARCHIVE" in
-  ""|a|arch)
-    ARCHIVE=a
-  ;;
-  n|no)
-    ARCHIVE=n
-  ;;
-  r|rm)
-    ARCHIVE=r
-  ;;
-  *)
-    ARCHIVE=h
-  ;;
-esac
+# main function
+function main {
+  set_and_check_params
+  install_packages
+  set_files
+  set_git
+}
 
-# check parameters
-if [ $# -gt 1 ] || [ "$ARCHIVE" = "h" ]; then
-  echo "$(basename $0) [archive]"
-  echo "set up LGOS development environment on Debian systems"
-  echo "arguments:"
-  echo "	archive:	<empty>,a,arch	= copy modified config files to filename~"
-  echo "			n,no		= don't create archive copy"
-  echo "			r,rm		= remove archived config files (filename~)"
-  echo "			h,help,--help	= print this help"
-  exit
-fi
+# set and check parameters
+function set_and_check_params {
+  ARCHIVE="$1"
+  case "$ARCHIVE" in
+    ""|a|arch)
+      ARCHIVE=a
+    ;;
+    n|no)
+      ARCHIVE=n
+    ;;
+    r|rm)
+      ARCHIVE=r
+    ;;
+    *)
+      ARCHIVE=h
+    ;;
+  esac
 
-# check root user
-if [ "$EUID" -ne 0 ]; then
-  echo "Please run as root." >&2
-  exit 1
-fi
+  # check parameters
+  if [ $# -gt 1 ] || [ "$ARCHIVE" = "h" ]; then
+    echo "$(basename $0) [archive]"
+    echo "set up LGOS development environment on Debian systems"
+    echo "arguments:"
+    echo "	archive:	<empty>,a,arch	= copy modified config files to filename~"
+    echo "			n,no		= don't create archive copy"
+    echo "			r,rm		= remove archived config files (filename~)"
+    echo "			h,help,--help	= print this help"
+    exit
+  fi
 
-# check Debian distro
-if [ ! -e /etc/debian_version ]; then
-  echo "This is not a Debian distro." >&2
-  exit 1
-fi
+  # check root user
+  if [ "$EUID" -ne 0 ]; then
+    echo "Please run as root." >&2
+    exit 1
+  fi
 
-# get user name, home dir and install dir
-USERNAME=$(who am i | awk '{print $1}')
-if [ -z "$USERNAME" ]; then
-  echo "Username not found." >&2
-  exit 1
-fi
+  # check Debian distro
+  if [ ! -e /etc/debian_version ]; then
+    echo "This is not a Debian distro." >&2
+    exit 1
+  fi
 
-HOMEDIR=$(awk -F : '($1 == "'"$USERNAME"'") {print $6}' /etc/passwd)
-if [ -z "$HOMEDIR" ]; then
-  echo "Can not found user's home dir." >&2
-  exit 1
-fi
-HOMEDIR="${HOMEDIR%/}"
+  # get user name, home dir and install dir
+  USERNAME=$(who am i | awk '{print $1}')
+  if [ -z "$USERNAME" ]; then
+    echo "Username not found." >&2
+    exit 1
+  fi
 
-INSTALLDIR=$(readlink -m $(dirname $0)/..)
-INSTALLDIR="${INSTALLDIR#$HOMEDIR/}"
+  HOMEDIR=$(awk -F : '($1 == "'"$USERNAME"'") {print $6}' /etc/passwd)
+  if [ -z "$HOMEDIR" ]; then
+    echo "Can not found user's home dir." >&2
+    exit 1
+  fi
+  HOMEDIR="${HOMEDIR%/}"
+
+  INSTALLDIR=$(readlink -m $(dirname $0)/..)
+  INSTALLDIR="${INSTALLDIR#$HOMEDIR/}"
+}
+
+# install packages
+function install_packages {
+  # install packages
+  pkgnames="sudo vim mc screen git gcc gcc-doc gdb gdb-doc logapp make make-doc qemu dosfstools"
+  installedpkgs=$(dpkg -l $pkgnames 2>/dev/null | awk 'BEGIN {FS = "[ :]+"; SEP = "";} { if ($1 == "ii") {printf("%s%s", SEP, $2); SEP = "\\|"}}')
+  pkgnames=$(echo "$pkgnames" | sed -e "s/\b\($installedpkgs\)\b *//g")
+  if [ -n "$pkgnames" ]; then
+    echo "Installing packages: $pkgnames"
+    apt-get -y install $pkgnames
+  fi
+
+  # set vi for default editor
+  update-alternatives --set editor $(readlink -f $(which vi))
+}
+
+# set file contents
+function set_files {
+  FILES=$(get_text FILES)
+  echo "$FILES" | while read fcmd ffile fowner fmode; do
+    fcnt=$(get_text $ffile)
+    case $fcmd in
+      cp)
+        if ! diff -qb <(echo "$fcnt") "$ffile" >/dev/null 2>&1; then
+          echo "$ffile"
+          if [ -e "$ffile" ] && [ "$ARCHIVE" = "a" ]; then
+            mv "$ffile" "$ffile~"
+          fi
+          echo "$fcnt" >"$ffile"
+          chown "$fowner" "$ffile"
+          chmod "$fmode" "$ffile"
+        fi
+        ;;
+      tail)
+        if ! diff -qb <(diff --unchanged-group-format='%=' --old-group-format='' --new-group-format='' --changed-group-format='' "$ffile" <(echo "$fcnt") 2>/dev/null) <(echo "$fcnt") >/dev/null 2>&1; then
+          echo "$ffile"
+          if [ -e "$ffile" ] && [ "$ARCHIVE" = "a" ]; then
+            cp -p "$ffile" "$ffile~"
+          fi
+          echo "$fcnt" >>"$ffile"
+          chown "$fowner" "$ffile"
+          chmod "$fmode" "$ffile"
+        fi
+        ;;
+    esac
+    if [ "$ARCHIVE" = "r" ]; then
+      if [ -e "$ffile~" ]; then
+        echo "rm $ffile~"
+        rm -f "$ffile~"
+      fi
+    fi
+  done
+}
+
+# set git options
+function set_git {
+  # set git config variables
+  while read var val; do
+    gitvar=$(sudo -u $USERNAME git config --global --get "$var" || true)
+    if [ "$gitvar" != "$val" ]; then
+      echo "git config $var: \"$gitvar\" -> \"$val\""
+      sudo -u "$USERNAME" git config --global "$var" "$val"
+    fi
+  done <<-EOF
+	user.name $GITUSER
+	user.email $GITEMAIL
+	push.default simple
+	EOF
+}
 
 # get text to write into files
 # parameters:
 #	file name
-function gettext {
+function get_text {
   case "$1" in
     FILES)
       echo "tail /etc/sudoers.d/$USERNAME root:root 440
@@ -325,7 +406,9 @@ hardstatus string '%{= G}%{G}%H%= %{B}%-Lw%{+br}%n%f* %t%{-}%+LW %=%{c}%1\`%{g}%
       ;;
     $HOMEDIR/.bashrc)
       echo '
-if [ "$SHLVL" = 1 ]; then
+
+# execute screen when connecting via SSH
+if [ -n "$SSH_TTY" ] && [ "$SHLVL" = 1 ]; then
   SHLVL=$(($SHLVL + 1))
   export SHLVL
   exec screen -d -RR
@@ -335,67 +418,10 @@ fi'
       echo '#includedir /etc/sudoers.d'
       ;;
     *)
-      echo "File content not found: $1" >&2
+      echo "File content not found: \"$1\"" >&2
       exit 1
   esac
 }
 
-# install packages
-pkgnames="sudo vim mc screen git gcc gcc-doc gdb gdb-doc logapp make make-doc qemu dosfstools"
-installedpkgs=$(dpkg -l | awk 'BEGIN {FS = "[ :]+"; SEP = "";} { if ($1 == "ii") {printf("%s%s", SEP, $2); SEP = "\\|"}}')
-pkgnames=$(echo "$pkgnames" | sed -e "s/\b\($installedpkgs\)\b *//g")
-if [ -n "$pkgnames" ]; then
-  apt-get -y install $pkgnames
-fi
-
-# set vi for default editor
-update-alternatives --set editor $(readlink -f $(which vi))
-
-FILES=$(gettext FILES)
-echo "$FILES" | while read fcmd ffile fowner fmode; do
-  fcnt=$(gettext $ffile)
-  case $fcmd in
-    cp)
-      if ! diff -qb <(echo "$fcnt") "$ffile" >/dev/null 2>&1; then
-        echo "$ffile"
-        if [ -e "$ffile" ] && [ "$ARCHIVE" = "a" ]; then
-          mv "$ffile" "$ffile~"
-        fi
-        echo "$fcnt" >"$ffile"
-        chown "$fowner" "$ffile"
-        chmod "$fmode" "$ffile"
-      fi
-      ;;
-    tail)
-      if ! diff -qb <(diff --unchanged-group-format='%=' --old-group-format='' --new-group-format='' --changed-group-format='' "$ffile" <(echo "$fcnt") 2>/dev/null) <(echo "$fcnt") >/dev/null 2>&1; then
-        echo "$ffile"
-        if [ -e "$ffile" ] && [ "$ARCHIVE" = "a" ]; then
-          cp -p "$ffile" "$ffile~"
-        fi
-        echo "$fcnt" >>"$ffile"
-        chown "$fowner" "$ffile"
-        chmod "$fmode" "$ffile"
-      fi
-      ;;
-  esac
-  if [ "$ARCHIVE" = "r" ]; then
-    if [ -e "$ffile~" ]; then
-      echo "rm $ffile~"
-      rm -f "$ffile~"
-    fi
-  fi
-done
-
-# set git config variables
-while read var val; do
-  gitvar=$(sudo -u $USERNAME git config --global --get "$var" || true)
-  if [ "$gitvar" != "$val" ]; then
-    echo "git config $var: \"$gitvar\" -> \"$val\""
-    sudo -u "$USERNAME" git config --global "$var" "$val"
-  fi
-
-done <<EOF
-user.name $GITUSER
-user.email $GITEMAIL
-push.default simple
-EOF
+# call main function
+main
