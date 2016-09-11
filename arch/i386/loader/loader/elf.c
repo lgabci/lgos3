@@ -383,7 +383,7 @@ typedef struct Elf64_Dyn_s Elf64_Dyn_t;
 
 int strtest(Elf64_Off_t offset, const char *name);
 void loadprogheaders(Elf64_Off_t phoff, Elf64_Half_t phentsize,
-  Elf64_Half_t phnum);
+  Elf64_Half_t phnum, farptr_t *entry);
 void getsection(Elf64_Off_t shoff, Elf64_Half_t shentsize, Elf64_Half_t shnum,
   Elf64_Half_t index, Elf64_Word_t *sh_type, Elf64_Off_t *sh_offset,
   Elf64_Xword_t *sh_size, Elf64_Word_t *sh_link);
@@ -417,61 +417,76 @@ int strtest(Elf64_Off_t offset, const char *name) {
 input:	offset of program header table in Elf file
 	size in bytes of one entry
 	number of entries
+	pointer to a far ptr entry to set 1st program header address
 output:	-
 */
 void loadprogheaders(Elf64_Off_t phoff, Elf64_Half_t phentsize,
-  Elf64_Half_t phnum) {
+  Elf64_Half_t phnum, farptr_t *entry) {
   union {
     Elf32_Phdr_t p32;
     Elf64_Phdr_t p64;
   } phdr;
   Elf64_Word_t p_type;			/* type of segment		*/
-  Elf64_Word_t p_flags;			/* segment attributes		*/
   Elf64_Off_t p_offset;			/* offset in file		*/
-  Elf64_Addr_t p_vaddr;			/* virtual address in memory	*/
   Elf64_Addr_t p_paddr;			/* reserved			*/
   Elf64_Xword_t p_filesz;		/* size of segment in file	*/
   Elf64_Xword_t p_memsz;		/* size of segment in memory	*/
-  Elf64_Xword_t p_align;		/* alignment of segment		*/
   Elf64_Half_t i;
+  Elf64_Addr_t last_top;
 
   if (phoff == 0 || phnum == 0) {
     stoperror("No program header found.");
   }
 
+  last_top = 0;
   for (i = 0; i < phnum; i ++) {
     readfile(phoff + i * phentsize, phentsize, &phdr);
 
-    switch (phentsize) {
+    switch (phentsize) {			/* 32 or 64 bit Elf	*/
       case sizeof(Elf32_Phdr_t):
         p_type = phdr.p32.p_type;
-        p_flags = phdr.p32.p_flags;
         p_offset = phdr.p32.p_offset;
-        p_vaddr = phdr.p32.p_vaddr;
         p_paddr = phdr.p32.p_paddr;
         p_filesz = phdr.p32.p_filesz;
         p_memsz = phdr.p32.p_memsz;
-        p_align = phdr.p32.p_align;
         break;
       case sizeof(Elf64_Phdr_t):
         p_type = phdr.p64.p_type;
-        p_flags = phdr.p64.p_flags;
         p_offset = phdr.p64.p_offset;
-        p_vaddr = phdr.p64.p_vaddr;
         p_paddr = phdr.p64.p_paddr;
         p_filesz = phdr.p64.p_filesz;
         p_memsz = phdr.p64.p_memsz;
-        p_align = phdr.p64.p_align;
         break;
     default:
       stoperror("Bad program header entry size: %u.", phentsize);
       break;
     }
+    if (i == 0) {				/* 1st prog header	*/
+      last_top = p_paddr;
+    }
 
-printf(" p_type: %llu, p_offset: 0x%llx, p_vaddr: 0x%llx, p_paddr: 0x%llx, "	/* // */
-"p_filesz: 0x%llx, p_memsz: 0x%llx, p_flags: %llu, p_align: %llu\n",		/* // */
-(u64_t)p_type, (u64_t)p_offset, (u64_t)p_vaddr, (u64_t)p_paddr, 		/* // */
-(u64_t)p_filesz, (u64_t)p_memsz, (u64_t)p_flags, (u64_t)p_align);		/* // */
+    if (p_type == PT_LOAD) {			/* loadable segment	*/
+      farptr_t fp;
+      Elf64_Addr_t gap;	/* gap between this and last program headers	*/
+
+      if (p_memsz < p_filesz) {
+        stoperror("Memory size is less than file size of the segment: "
+          "%llu < %llu", p_memsz, p_filesz);
+      }
+      gap = p_paddr - last_top;
+      fp = malloc(p_memsz + gap, 1);	/* alloc mem for program header	*/
+      if (i == 0) {			/* 1st prog header address	*/
+        *entry = fp;
+      }
+      printf("0x%llx (+ 0x%llx) @ 0x%llx --> 0x%04x:%04x\n", p_filesz,
+        p_memsz - p_filesz, p_offset, fp.segment, fp.offset);
+      readfile_f(p_offset, p_filesz, fp);		/* read segment	*/
+      memset_f(farptradd(fp, p_filesz), 0, p_memsz - p_filesz);
+      last_top = p_paddr + p_memsz;
+    }
+    else {
+      stoperror("Bad ELF file: only loadable segments are allowed in program header table.");
+    }
 
   }
 }
@@ -663,16 +678,14 @@ int loadelf(farptr_t *entry) {
   Elf64_Half_t shentsize;		/* size of section header entry	*/
   Elf64_Half_t shnum;			/* # of section header entries	*/
 
-/* // ------------------------------------------------------------------	*/
-  printf("ELF loader: ");
-
   readfile(0, EI_NIDENT, &ehdr32.e_ident);	/* check ELF magic val	*/
   if (ehdr32.e_ident[EI_MAG0] != ELFMAG0 ||
     ehdr32.e_ident[EI_MAG1] != ELFMAG1 ||
     ehdr32.e_ident[EI_MAG2] != ELFMAG2 ||
     ehdr32.e_ident[EI_MAG3] != ELFMAG3) {
-    stoperror("Not an ELF file.");
+    return 0;
   }
+  printf("ELF loader.\n");
 
   elftype = ELFTYPE_NONE;
   if (ehdr32.e_ident[EI_CLASS] == ELFCLASS32 &&	/* read ELF header	*/
@@ -730,20 +743,8 @@ int loadelf(farptr_t *entry) {
       break;
   }
 
+  loadprogheaders(phoff, phentsize, phnum, entry);
+  *entry = farptradd(*entry, getrmentry(shoff, shentsize, shnum));
 
-
-
-  printf("e_type: %llu, e_machine: %u, e_version: %lu, e_entry: 0x%llx, type: %u\n",	/* // */
-    (u64_t)ehdr32.e_type, ehdr32.e_machine, ehdr32.e_version, ehdr32.e_entry, elftype);	/* // */
-  printf("e_phoff: 0x%llx, e_phentsize: %u, e_phnum: %u\n", phoff, phentsize, phnum);	/* // */
- printf("e_shoff: 0x%llx, e_shentsize: %u, e_shnum: %u\n", shoff, shentsize, shnum);	/* // */
-  printf(" %u, %u ", sizeof(Elf32_Phdr_t), sizeof(Elf64_Phdr_t));			/* // */
-
-
-
-  loadprogheaders(phoff, phentsize, phnum);
-  getrmentry(shoff, shentsize, shnum);
-/* // -------------------------------------------------------------------------------------- */
-
-  return entry == NULL;		/* // */
+  return 1;					/* successful	*/
 }

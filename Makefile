@@ -10,7 +10,7 @@ export ARCH
 .SUFFIXES :
 .PHONY : fd hd debug loader disasm clean
 
-all : fd
+all : hd
 
 fd : loader
 	$(MAKE) -C arch/$(ARCH)/qemu fd

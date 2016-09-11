@@ -27,7 +27,7 @@ void loadkernel() {
   setcolor(CLR_BLUE << 4 | CLR_YELLOW);
   printf("  -= LGOS 3 loader =-  \n");
   setcolor(CLR_GREEN);
-  printf("loader config file: %s\n", loadercfgpath);
+  printf("loader config: %s\n", loadercfgpath);
 
   openfile(loadercfgpath);		/* open config file	*/
   cfsize = getfilesize();		/* get config file size	*/
@@ -57,7 +57,7 @@ void loadkernel() {
         *s = '\0';
       }
     }
-    printf("Kernel path: %s, parameters: \"%s\"\n", path, params);
+    printf("kernel       : %s %s\n", path, params);
 
     openfile(path);			/* open kernel		*/
     {
@@ -65,7 +65,7 @@ void loadkernel() {
       int lfsize;
       farptr_t entry;
 
-      int (*loadfv[])(farptr_t *) = { &loadmb, &loadelf };
+      int (*loadfv[])(farptr_t *) = {&loadmb, &loadelf};
 
       lfsize = sizeof(loadfv) / sizeof(loadfv[0]);
       for (i = 0; i < lfsize; i ++) {		/* try file formats	*/
@@ -79,7 +79,9 @@ void loadkernel() {
       }
 
       stopfloppy();				/* stop floppy motors	*/
-      printf("Starting kernel ...\n");		/* jump to kernel	*/
+      printf("Starting kernel @ 0x%04x:%04x ...\n",
+        entry.segment, entry.offset);		/* jump to kernel	*/
+
       __asm__ __volatile__ (
 	"ljmp	*%[entry]	\n"
 	:

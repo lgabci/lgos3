@@ -45,8 +45,6 @@ __asm__ (".code16gcc");				/* compile 16 bit code	*/
                                   ATTR_SYSTEM | ATTR_VOLUME_ID | \
                                   ATTR_DIRECTORY | ATTR_ARCHIVE )
 
-#define BS_EXTBOOTSIG		0x29	/* etended boot signature	*/
-
 struct __attribute__ ((packed)) bootsect16_s {	/* FAT12/16 boot sector	*/
   u8_t bs_oemname[8];
   u16_t bpb_bytspersec;
@@ -217,49 +215,6 @@ int initfat() {
     fatprm.eoc = 0x0ffffff8;
     fatprm.bad = 0x0ffffff7;
     fatprm.fat32rootclus = b.b32.bpb_rootclus;
-  }
-
-  {				/* print filesystem info	*/
-    char oemname[sizeof(b.b16.bs_oemname) + 1];
-    u8_t bootsig;
-    u32_t volid;
-    u8_t vollab[sizeof(b.b16.bs_vollab) + 1];
-    signed int i;
-
-    memcpy(oemname, b.b16.bs_oemname, sizeof(b.b16.bs_oemname));
-    oemname[sizeof(b.b16.bs_oemname)] = '\0';
-
-    if (fatprm.fattype == FAT32) {
-      bootsig = b.b32.bs_bootsig;
-      volid = b.b32.bs_volid;
-      memcpy(vollab, b.b32.bs_vollab, sizeof(b.b32.bs_vollab));
-      vollab[sizeof(b.b32.bs_vollab)] = '\0';
-    }
-    else {
-      bootsig = b.b16.bs_bootsig;
-      volid = b.b16.bs_volid;
-      memcpy(vollab, b.b16.bs_vollab, sizeof(b.b16.bs_vollab));
-      vollab[sizeof(b.b16.bs_vollab)] = '\0';
-    }
-
-    for (i = strlen((char *)vollab) - 1; i >= 0 && vollab[i] == ' ';
-      vollab[i --] = '\0');		/* trim spaces		*/
-
-    printf("Detected %s filesystem, OEM ID: \"%s\", ",
-      fatprm.fattype == FAT12 ? "FAT12" :
-        fatprm.fattype == FAT16 ? "FAT16" : "FAT32", oemname);
-
-    if (bootsig == BS_EXTBOOTSIG) {
-      printf("volume ID: %04lx-%04lx, volume label: \"%s\", ",
-        volid >> 16, volid & 0xffff, vollab);
-    }
-
-    printf("size: %lu (%lu%s) clusters.\n",
-      fatprm.countofclusters,
-      fatprm.bytesperclus >= 1024 ? fatprm.bytesperclus / 1024 :
-        fatprm.bytesperclus,
-      fatprm.bytesperclus >= 1024 ? "K" : " byte");
-
   }
 
   g_pdirentry = NULL;			/* no file opened		*/

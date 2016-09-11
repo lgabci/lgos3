@@ -125,6 +125,7 @@ GRUBMENU=menu.lst
 KRNDIRIMG=kernel				# kernel directory in image
 KRNDIR=../kernel				# kernel directory here
 KERNEL=init.elf					##
+#KERNEL=init.bin					##
 KERNELPARAMS="alma korte 1"			##
 
 O_USER=$(who am i | cut -f 1 -d ' ')		# caller of script

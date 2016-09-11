@@ -63,7 +63,7 @@ size_t strtoken(const char **str, const char delim);
 char *strchr(const char *str, int c);
 char tolower(char c);		/* convert a letter to lowercase	*/
 
-farptr_t getbss(u32_t size, u8_t align);	/* get address from bss	*/
+farptr_t malloc(u32_t size, u16_t align);	/* allocate memory	*/
 
 void stoperror(const char *message, ...) __attribute__ ((noinline,noreturn));
 void halt() __attribute__ ((noreturn));		/* halt			*/

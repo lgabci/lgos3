@@ -22,5 +22,5 @@ SECTIONS {
     *(.bss)
     *(COMMON)
   }
-  _bssend = .;
+  bssend = .;
 }

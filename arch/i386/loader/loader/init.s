@@ -9,11 +9,11 @@
 .equ VID_TELETYPE, 0x0e			# write teletype output
 .equ VID_GETCURMODE, 0x0f		# get current video mode
 
+.extern bssend
+
 .section .text	# --------------------------------------------------------------
 .globl start
 start:
-
-
 	cli					# disable interrupts
 	movb	$0x80, %al			# disable NMI
 	outb	%al, $0x70
@@ -32,7 +32,7 @@ start:
 	inb	$0x71, %al
 
 	movw	$.bss, %di			# clear bss
-	movw	$_bssend + 1, %cx
+	movw	$bssend + 1, %cx
 	subw	%di, %cx
 	cld					# increment index
 	xorb	%al, %al

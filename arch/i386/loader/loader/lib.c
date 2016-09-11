@@ -8,8 +8,7 @@ __asm__ (".code16gcc");				/* compile 16 bit code	*/
 
 #define MAX_REAL_MODE_ADDR	0xa0000		/* max mem is 640kB	*/
 
-extern int _bssend;			/* end of bss, from loader.ld	*/
-static farptr_t bsstop = {0, 0};
+extern int bssend;			/* end of bss, from loader.ld	*/
 
 /*
 64 bit division
@@ -94,8 +93,8 @@ farptr_t farptradd(farptr_t p, u32_t bytes) {
   u32_t addr;
   farptr_t retp;
 
-  addr = (p.segment << 4) + p.offset + bytes;
-  if (addr >= MAX_REAL_MODE_ADDR) {
+  addr = ((u32_t)p.segment << 4) + p.offset + bytes;
+  if (addr > MAX_REAL_MODE_ADDR) {
     stoperror("Real mode address over 0x%lx.", (u32_t)MAX_REAL_MODE_ADDR);
   }
   retp.segment = addr >> 4;
@@ -328,25 +327,27 @@ char tolower(char c) {
   }
 }
 
-/* get address from bss
+/* allocate memory
 input:	size of mem in bytes
-	alignment is bytes
+	alignment in bytes
 output:	far pointer to allocated mem
 */
-farptr_t getbss(u32_t size, u8_t align) {
+farptr_t malloc(u32_t size, u16_t align) {
+  static farptr_t bsstop = {0, 0};
   farptr_t p;
 
   if (bsstop.segment == 0 && bsstop.offset == 0) {	/* 1st call	*/
-    p = farptr(&_bssend);			/* initialize	*/
+    bsstop = farptr(&bssend);			/* initialize		*/
   }
-  else {					/* further calls	*/
-    p = bsstop;
+  if (align > 1) {				/* align, if need	*/
+    u16_t alignmod;
+    alignmod = (((u32_t)bsstop.segment << 4) + bsstop.offset) % align;
+    if (alignmod > 0) {
+      bsstop = farptradd(bsstop, align - alignmod);
+    }
   }
-  p = farptrnorm(p);
-  if (align > 1) {
-    p.offset = (p.offset + align - 1) & -(u16_t)align;	/* align	*/
-  }
-  bsstop = farptradd(p, size);
+  p = bsstop;					/* return value		*/
+  bsstop = farptradd(bsstop, size);		/* next top of BSS	*/
   return farptrnorm(p);
 }
 

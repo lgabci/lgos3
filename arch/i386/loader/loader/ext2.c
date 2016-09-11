@@ -325,54 +325,8 @@ int initext2() {
   ext2prm.bgdtstart =	/* 2. block on a 1KiB block filesystem, 1. on larger */
     ext2prm.blocksize == 0x400 ? 0x800 : ext2prm.blocksize;
 
-  printf("Ext2 filesystem found. Version: %lu.%u, state: %s, block count: %lu, "
-    "block size: %lu, block groups: %lu, i-node count: %lu, i-node size: %u\n",
-    ext2prm.revlevel, ext2prm.minorrevlevel,
-    sblk.s_state == EXT2_VALID_FS ? "clean" : "dirty",
-    ext2prm.totalblockscount, ext2prm.blocksize, ext2prm.blockgroups,
-    ext2prm.totalinodescount, ext2prm.inodesize);
-
   if (ext2prm.revlevel == EXT2_DYNAMIC_REV) {
-    u8_t volumename[sizeof(sblk.s_volume_name) + 1];
-
-    memcpy(&volumename, &sblk.s_volume_name, sizeof(sblk.s_volume_name));
-    volumename[sizeof(sblk.s_volume_name)] = 0;
-    printf("UUID: %02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-"
-      "%02x%02x%02x%02x%02x%02x, volume name: \"%s\"\n",
-      sblk.s_uuid[0], sblk.s_uuid[1], sblk.s_uuid[2], sblk.s_uuid[3],
-      sblk.s_uuid[4], sblk.s_uuid[5], sblk.s_uuid[6], sblk.s_uuid[7],
-      sblk.s_uuid[8], sblk.s_uuid[9], sblk.s_uuid[10], sblk.s_uuid[11],
-      sblk.s_uuid[12], sblk.s_uuid[13], sblk.s_uuid[14], sblk.s_uuid[15],
-      volumename);
-
-    printf("Compatible features: 0x%08lx%s%s%s%s%s%s\n", ext2prm.fcomp,
-      ext2prm.fcomp & EXT2_FEATURE_COMPAT_DIR_PREALLOC ? ", DIR_PREALLOC" : "",
-      ext2prm.fcomp & EXT2_FEATURE_COMPAT_IMAGIC_INODES ?
-        ", IMAGIC_INODES" : "",
-      ext2prm.fcomp & EXT3_FEATURE_COMPAT_HAS_JOURNAL ? ", HAS_JOURNAL" : "",
-      ext2prm.fcomp & EXT2_FEATURE_COMPAT_EXT_ATTR ? ", EXT_ATTR" : "",
-      ext2prm.fcomp & EXT2_FEATURE_COMPAT_RESIZE_INO ? ", RESIZE_INODE" : "",
-      ext2prm.fcomp & EXT2_FEATURE_COMPAT_DIR_INDEX ? ", DIR_INDEX" : ""
-    );
-
-    printf("Incompatible features: 0x%08lx%s%s%s%s%s\n", ext2prm.fincomp,
-      ext2prm.fincomp & EXT2_FEATURE_INCOMPAT_COMPRESSION ?
-        ", COMPRESSION" : "",
-      ext2prm.fincomp & EXT2_FEATURE_INCOMPAT_FILETYPE ? ", FILETYPE" : "",
-      ext2prm.fincomp & EXT3_FEATURE_INCOMPAT_RECOVER ? ", RECOVER" : "",
-      ext2prm.fincomp & EXT3_FEATURE_INCOMPAT_JOURNAL_DEV ?
-        ", JOURNAL_DEV" : "",
-      ext2prm.fincomp & EXT2_FEATURE_INCOMPAT_META_BG ? ", META_BG" : ""
-    );
-
-    printf("Read only features: 0x%08lx%s%s%s\n", ext2prm.frocomp,
-      ext2prm.frocomp & EXT2_FEATURE_RO_COMPAT_SPARSE_SUPER ?
-        ", SPARSE_SUPER" : "",
-      ext2prm.frocomp & EXT2_FEATURE_RO_COMPAT_LARGE_FILE ? ", LARGE_FILE" : "",
-      ext2prm.frocomp & EXT2_FEATURE_RO_COMPAT_BTREE_DIR ? ", BTREE_DIR" : ""
-    );
-
-    if (sblk.s_feature_incompat & ~EXT2_MOUNT_INCOMPAT) {
+    if ((sblk.s_feature_incompat & ~EXT2_MOUNT_INCOMPAT) != 0) {
       stoperror("Unimplemented incompatible features: 0x%08lx.",
         sblk.s_feature_incompat & ~EXT2_MOUNT_INCOMPAT);
     }

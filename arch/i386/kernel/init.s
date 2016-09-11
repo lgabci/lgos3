@@ -3,6 +3,7 @@
 .code16
 
 .equ MBMAGIC, 0x1badb002		# multiboot magic number
+#.equ MBFLAGS, 0x00010000
 .equ MBFLAGS, 0x00000000
 
 .section .mbheader, "a", @progbits	# --------------------------------------
@@ -27,7 +28,7 @@
 .long BSS_END_ADDR			# bss_end_addr
 .long ENTRY_ADDR			# entry_addr
 .byte 'L, 'G, 'O, 'S			# own extension for real mode entry
-.long rstart				# real mode entry address
+.long rmstart				# real mode entry address
 .endif
 
 .section .rmtext, "ax", @progbits	# --------------------------------------
@@ -37,7 +38,6 @@
 rmstart:
 	cli
 
-	cli
 	movw	$0xb800, %ax		##
 	movw	%ax, %es		##
 	movw	%cs, %ax		##

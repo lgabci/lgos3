@@ -64,8 +64,6 @@ u32_t getmbheader(mbheader_t *mbh) {
     readfile(i, sizeof(req_t), &req);		/* read file at dwords	*/
     if (req.magic == MB_MAGIC &&		/* multiboot header	*/
       req.magic + req.flags + req.checksum == 0) {
-      printf("Multiboot header found, flags = 0x%08lx.\n", req.flags);
-
       if (mbh != NULL) {
         mbh->req = req;
         if (req.flags & MB_FLAGOPTVALID) {		/* read opt	*/
@@ -93,16 +91,15 @@ int loadmb(farptr_t *entry) {
   int mboff;				/* mb header offset in file	*/
   u32_t readoffs;			/* read from here the kernel	*/
   u32_t readsize;			/* read this many bytes		*/
+  u32_t bsssize;			/* size of BSS			*/
   farptr_t fp;
 
   mboff = getmbheader(&mb);		/* get mb header and offset	*/
   if (mboff == MB_NOTFOUND) {		/* can not load			*/
-    printf("Multiboot header not found.\n");
     return 0;
   }
 
   if ((mb.req.flags & MB_FLAGOPTVALID) == 0) {		/* read opt	*/
-    printf("No optional parameters found.\n");
     return 0;
   }
 
@@ -110,9 +107,9 @@ int loadmb(farptr_t *entry) {
     mb.own.ext_chksum[1] != MB_OWNCHKSUM1 ||
     mb.own.ext_chksum[2] != MB_OWNCHKSUM2 ||
     mb.own.ext_chksum[3] != MB_OWNCHKSUM3) {
-    printf("No real mode entry point found.\n");
     return 0;
   }
+  printf("Multiboot loader.\n");
 
   readoffs = mboff - (mb.opt.header_addr - mb.opt.load_addr);
   if (mb.opt.load_end_addr == 0) {	/* to the end of file		*/
@@ -121,15 +118,21 @@ int loadmb(farptr_t *entry) {
   else {					/* to load_end_addr	*/
     readsize = mb.opt.load_end_addr - mb.opt.load_addr;
   }
+  if (mb.opt.bss_end_addr == 0) {	/* no BSS segment present	*/
+    bsssize = 0;
+  }
+  else {					/* to load_end_addr	*/
+    bsssize = mb.opt.bss_end_addr - mb.opt.load_addr - readsize;
+  }
 
-  printf("Load on header optional fields: 0x%x @ 0x%x, ", readsize, readoffs);
-  fp = getbss(readsize, 0x10);		/* alloc memory for kernel	*/
+  fp = malloc(readsize, 1);		/* alloc memory for kernel	*/
 
-  printf("load to %04x:%04x, ", fp.segment, fp.offset);
-  readfile_f(readoffs, readsize, fp);	/* load kernel			*/
+  printf("0x%lx (+ 0x%lx) @ 0x%lx --> %04x:%04x\n", readsize, bsssize,
+    readoffs, fp.segment, fp.offset);
+  readfile_f(readoffs, readsize, fp);			/* load kernel	*/
+  memset_f(farptradd(fp, readsize), 0, bsssize);	/* clear BSS	*/
 
   fp.offset = fp.offset + mb.own.real_entry;
-  printf("real mode entry point = %04x:%04x.\n", fp.segment, fp.offset);
 
   *entry = fp;
   return 1;

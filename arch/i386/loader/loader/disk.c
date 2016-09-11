@@ -274,7 +274,6 @@ static void initdisk(const char *dev) {
   }
 
   if (! driveprm.initialized || driveprm.drive != disk) {
-    printf("Initialize disk 0x%02x.\n", disk);
     driveprm.drive = disk;			/* slot for this disk	*/
 
     __asm__ __volatile__  (			/* check BIOS extension	*/
@@ -388,7 +387,7 @@ static void initdisk(const char *dev) {
     if (diskcache == NULL) {				/* first time	*/
       farptr_t fp;
 
-      fp = getbss(DISK_CACHESIZE, 0x10);
+      fp = malloc(DISK_CACHESIZE, 0x10);
       diskcache = (void *)(((u32_t)(fp.segment - dataseg) << 4) + fp.offset);
     }
 
@@ -407,14 +406,6 @@ static void initdisk(const char *dev) {
       driveprm.cacheeptr[i].readcnt = 0;
     }
 
-    printf("Total sectors: %llu, ", driveprm.totsecs);
-    if (driveprm.cyls) {
-      printf("CHS: %lu/%lu/%lu, ",
-        driveprm.cyls, driveprm.heads, driveprm.secs);
-    }
-    printf("bytes/sector: %u, BIOS ext: %s.\n",
-      driveprm.bytes, driveprm.extbios ? "found" : "not found");
-
     partprm.initialized = FALSE;	/* initialize partition		*/
     driveprm.initialized = TRUE;
   }
@@ -423,8 +414,6 @@ static void initdisk(const char *dev) {
     if (part == 0xff) {		/* if no partition, the use whole disk	*/
       partprm.partstart = 0;
       partprm.partsize = driveprm.totsecs;
-      printf("Using whole device: blocks %llu - %llu\n",
-        partprm.partstart, partprm.partstart + partprm.partsize - 1);
 
       partprm.parttype = 0x0;	/* init all filesystems			*/
     }
@@ -470,13 +459,6 @@ static void initdisk(const char *dev) {
         partprm.partsize = (lastcyl * driveprm.heads + mbrentry.lastchs.head) *
           driveprm.secs + lastsec - 1 - partprm.partstart + 1;
       }
-
-      printf("Partition %u: (0x%02x) %llu blocks %llu (CHS: %u/%u/%u) - %llu "
-        "(CHS: %u/%u/%u)\n",
-        part, mbrentry.type, partprm.partsize, partprm.partstart, firstcyl,
-        mbrentry.firstchs.head, firstsec,
-        partprm.partstart + partprm.partsize - 1,
-        lastcyl, mbrentry.lastchs.head, lastsec);
 
       switch (mbrentry.type) {
         case 0:				/* empty partition	*/
@@ -644,7 +626,7 @@ static u16_t readcachedsec(u64_t sector) {
     if (driveprm.cacheeptr[i].readcnt &&
       driveprm.cacheeptr[i].sector == sector) {	/* cache hit		*/
       driveprm.cacheeptr[i].readcnt = ++ readcnt;
-      { u8_t c = getcolor(); setcolor(CLR_LGREEN);  printf("[%llu] ", sector); setcolor(c); }	/*// */
+//      { u8_t c = getcolor(); setcolor(CLR_LGREEN);  printf("[%llu] ", sector); setcolor(c); }	/*// */
       return driveprm.cacheseg + (i * driveprm.bytes >> 4);
     }
     if (driveprm.cacheeptr[i].readcnt < mincnt) {
@@ -657,7 +639,7 @@ static u16_t readcachedsec(u64_t sector) {
   driveprm.cacheeptr[oldpos].sector = sector;
   retseg = driveprm.cacheseg + (oldpos * driveprm.bytes >> 4);
   readphyssec(sector, retseg);
-  { u8_t c = getcolor(); setcolor(CLR_LRED);  printf("[%llu] ", sector); setcolor(c); }	/* // */
+//  { u8_t c = getcolor(); setcolor(CLR_LRED);  printf("[%llu] ", sector); setcolor(c); }	/* // */
 
   return retseg;
 }
