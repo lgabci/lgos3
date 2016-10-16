@@ -1,6 +1,9 @@
 #!/bin/bash
 set -e
 
+# parameters
+ARCHIVE="$1"
+
 # git user name and git email address
 GITUSER="lgabci"
 GITEMAIL="gl12qw@gmail.com"
@@ -15,7 +18,6 @@ function main {
 
 # set and check parameters
 function set_and_check_params {
-  ARCHIVE="$1"
   case "$ARCHIVE" in
     ""|a|arch)
       ARCHIVE=a
@@ -77,8 +79,8 @@ function set_and_check_params {
 function install_packages {
   # install packages
   pkgnames="sudo vim mc screen git gcc gcc-doc gdb gdb-doc logapp make make-doc qemu dosfstools"
-  installedpkgs=$(dpkg -l $pkgnames 2>/dev/null | awk 'BEGIN {FS = "[ :]+"; SEP = "";} { if ($1 == "ii") {printf("%s%s", SEP, $2); SEP = "\\|"}}')
-  pkgnames=$(echo "$pkgnames" | sed -e "s/\b\($installedpkgs\)\b *//g")
+  installedpkgs=$(dpkg -l $pkgnames 2>/dev/null | awk -F '[ :]+' '{if ($1 == "ii") {print($2)}}')
+  pkgnames=$(echo "$pkgnames" | tr ' ' '\n' | grep -Fvx "$installedpkgs" | tr '\n' ' ')
   if [ -n "$pkgnames" ]; then
     echo "Installing packages: $pkgnames"
     apt-get -y install $pkgnames
@@ -164,7 +166,7 @@ tail /etc/sudoers root:root 440"
       echo "logfile="
       ;;
     $HOMEDIR/.config/mc/ini)
-      echo "[Midnight-Commander]
+      echo '[Midnight-Commander]
 verbose=1
 pause_after_run=2
 shell_patterns=1
@@ -327,7 +329,7 @@ expanded_view_of_groups=0
 Find *.orig after patching=find . -name \\*.orig -print
 Find SUID and SGID programs=find . \\( \\( -perm -04000 -a -perm +011 \\) -o \\( -perm -02000 -a -perm +01 \\) \\) -print
 Find rejects after patching=find . -name \\*.rej -print
-Modified git files=git ls-files --modified"
+Modified git files=git ls-files --modified'
       ;;
     /usr/local/bin/screen.sh)
       echo '#!/bin/sh
@@ -406,7 +408,6 @@ hardstatus string '%{= G}%{G}%H%= %{B}%-Lw%{+br}%n%f* %t%{-}%+LW %=%{c}%1\`%{g}%
       ;;
     $HOMEDIR/.bashrc)
       echo '
-
 # execute screen when connecting via SSH
 if [ -n "$SSH_TTY" ] && [ "$SHLVL" = 1 ]; then
   SHLVL=$(($SHLVL + 1))
