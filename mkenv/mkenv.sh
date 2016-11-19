@@ -1,23 +1,15 @@
 #!/bin/bash
 set -e
 
-# parameters
-ARCHIVE="$1"
-
 # git user name and git email address
 GITUSER="lgabci"
 GITEMAIL="gl12qw@gmail.com"
-
-# main function
-function main {
-  set_and_check_params
-  install_packages
-  set_files
-  set_git
-}
+GITREPO="lgos3"
 
 # set and check parameters
 function set_and_check_params {
+  ARCHIVE="$1"
+
   case "$ARCHIVE" in
     ""|a|arch)
       ARCHIVE=a
@@ -97,7 +89,7 @@ function set_files {
     fcnt=$(get_text $ffile)
     case $fcmd in
       cp)
-        if ! diff -qb <(echo "$fcnt") "$ffile" >/dev/null 2>&1; then
+        if ! diff -qbB <(echo "$fcnt") "$ffile" >/dev/null 2>&1; then
           echo "$ffile"
           if [ -e "$ffile" ] && [ "$ARCHIVE" = "a" ]; then
             mv "$ffile" "$ffile~"
@@ -130,6 +122,9 @@ function set_files {
 
 # set git options
 function set_git {
+  # Git directory
+  cd $(dirname $0)/..
+
   # set git config variables
   while read var val; do
     gitvar=$(sudo -u $USERNAME git config --global --get "$var" || true)
@@ -142,6 +137,16 @@ function set_git {
 	user.email $GITEMAIL
 	push.default simple
 	EOF
+
+  GITNAME=origin
+  GITURL=git@github.com:$GITUSER/$GITREPO.git
+  FETCHURL=$(git remote show -n "$GITNAME" | awk '{if (tolower($1 " " $2) == "fetch url:") {print $3}}')
+  PUSHURL=$(git remote show -n "$GITNAME" | awk '{if (tolower($1 " " $2) == "push url:") {print $3}}')
+  if [ "$GITURL" != "$FETCHURL" ] || [ "$GITURL" != "$PUSHURL" ]; then
+    echo "Set Git URL to $GITURL"
+    git remote set-url "$GITNAME" "$GITURL"
+  fi
+  cd - >/dev/null
 }
 
 # get text to write into files
@@ -424,5 +429,13 @@ fi'
   esac
 }
 
+# main function
+function main {
+  set_and_check_params $@
+  install_packages
+  set_files
+  set_git
+}
+
 # call main function
-main
+main $@
