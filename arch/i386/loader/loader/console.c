@@ -37,32 +37,26 @@ output:	-
 void initvideo() {
   u8_t vidmode;
 
-  __asm__ __volatile__ (
-	"movb	%[vid_getcurmode], %%ah	\n"	/* get current vid mode	*/
-	"movb	$0xff, %%bh		\n"
-	"int	%[int_video]		\n"	/* mod: AX, BH		*/
-	"movb	%%al, %[vidmode]	\n"	/* video mode		*/
-	"movb	%%ah, %[maxcol]		\n"	/* number of char cols	*/
-	"movb	%%bh, %[vidpage]	\n"	/* active page		*/
-	: [maxcol]		"=m" (maxcol),
-	  [vidpage]		"=m" (vidpage),
-	  [vidmode]		"=m" (vidmode)
-	: [int_video]		"i" (INT_VIDEO),
-	  [vid_getcurmode]	"i" (VID_GETCURMODE)
-	: "cc" , "ax", "bh"
+  __asm__ __volatile__ (			/* get curr vid mode	*/
+    "       int     %[int_video]	\n"	/* mod: AX, BH		*/
+    "       movb    %%ah, %[maxcol]	\n"	/* number of char cols	*/
+    "       movb    %%bh, %%bl		\n"	/* active page		*/
+    : "=a" (vidmode),
+      "=b" (vidpage),
+      [maxcol] "=m" (maxcol)
+    : "a" ((u16_t)VID_GETCURMODE << 8),		/* AH = 0x0f		*/
+      "b" ((u16_t)0xff << 8),			/* BH = 0xff		*/
+      [int_video] "i" (INT_VIDEO)
   );
 
   if (vidpage == 0xff || maxcol == VID_GETCURMODE) {	/* BIOS bug	*/
 		/* we have no video page number and column number	*/
     vidpage = 0;
     __asm__ __volatile__ (
-	"movb	%[vid_setcurpage], %%ah	\n"	/* select current page	*/
-	"movb	%[vidpage], %%al	\n"
-	"int	%[int_video]		\n"
-	:
-	: [vid_setcurpage]	"i" (VID_SETCURPAGE),
-	  [vidpage]		"m" (vidpage),
-	  [int_video]		"i" (INT_VIDEO)
+      "       int     %[int_video]	\n"	/* select current page	*/
+      :
+      : "a" ((u16_t)VID_SETCURPAGE << 8 | vidpage),	/* AH = 0x05	*/
+        [int_video] "i" (INT_VIDEO)
     );
 
     switch (vidmode) {		/* get columns number from video mode	*/
@@ -74,6 +68,7 @@ void initvideo() {
         break;
       default:
         maxcol = 40;
+        break;
     }
   }
 
@@ -81,18 +76,15 @@ void initvideo() {
   maxrow = 25 - 1;
   color = CLR_LGRAY;
 
-  __asm__ __volatile__ (
-	"movb	%[vid_getcurpos], %%ah	\n"	/* get cursor position	*/
-	"movb	%[vidpage], %%bh	\n"
-	"int	%[int_video]		\n"	/* mod: AX, CX, DX	*/
-	"movb	%%dh, %[row]		\n"	/* row			*/
-	"movb	%%dl, %[col]		\n"	/* column		*/
-	: [row]			"=m" (row),
-	  [col]			"=m" (col)
-	: [vidpage]		"m" (vidpage),
-	  [int_video]		"i" (INT_VIDEO),
-	  [vid_getcurpos]	"i" (VID_GETCURPOS)
-	: "cc" , "ax", "bh", "cx", "dx"
+  __asm__ __volatile__ (			/* get cursor position	*/
+    "       int     %[int_video]	\n"
+    "       movb    %%dh, %%al		\n"	/* DX = row & column	*/
+    : "=a" (row),
+      "=d" (col)
+    : "a" ((u16_t)VID_GETCURPOS << 8),		/* AH = 0x03		*/
+      "b" ((u32_t)vidpage << 8),		/* BH = vide page num	*/
+      [int_video] "i" (INT_VIDEO)
+    : "cx"
   );
 }
 
@@ -127,19 +119,12 @@ static void writechr(u8_t ch) {
   }
   else {
     __asm__ __volatile__ (
-	"movb	%[vid_writechra], %%ah	\n"	/* write char and attr.	*/
-	"movb	%[ch], %%al		\n"	/* character to display	*/
-	"movb	%[vidpage], %%bh	\n"	/* page number		*/
-	"movb	%[color], %%bl		\n"	/* attribute		*/
-	"movw	$1, %%cx		\n"	/* # of times to write	*/
-	"int	%[int_video]		\n"	/* mod: -		*/
-	:
-	: [vid_writechra]	"i" (VID_WRITECHRA),
-	  [ch]			"m" (ch),
-	  [vidpage]		"m" (vidpage),
-	  [color]		"m" (color),
-	  [int_video]		"i" (INT_VIDEO)
-	: "cc", "ax", "bx", "cx"
+      "       int     %[int_video]	\n"
+      :
+      : "a" ((u16_t)VID_WRITECHRA << 8 | ch),	/* AH = 0x09, AL = char	*/
+        "b" ((u16_t)vidpage << 8 | color),	/* BH = page, BL = clr	*/
+        "c" ((u16_t)1),				/* CX = counter		*/
+        [int_video] "i" (INT_VIDEO)
     );
     col ++;
   }
@@ -152,40 +137,26 @@ static void writechr(u8_t ch) {
   if (row > maxrow) {
     row = maxrow;
     __asm__ __volatile__ (
-	"movb	%[vid_scrollup], %%ah	\n"	/* scroll up window	*/
-	"movb	$0x1, %%al		\n"	/* # of lines to scroll	*/
-	"movb	%[color], %%bh		\n"	/* attr of new lines	*/
-	"xorw	%%cx, %%cx		\n"	/* upper left corner	*/
-	"movb	%[maxrow], %%dh		\n"	/* row of low right cor	*/
-	"movb	%[maxcol], %%dl		\n"	/* col of low right cor	*/
-	"pushw	%%bp			\n"	/* BIOS bug destroys BP	*/
-	"pushw	%%ds			\n"	/* BIOS bug clears DS	*/
-	"int	%[int_video]		\n"	/* mod: -		*/
-	"popw	%%ds			\n"
-	"popw	%%bp			\n"
-	:
-	: [vid_scrollup]	"i" (VID_SCROLLUP),
-	  [color]		"i" (CLR_BLACK << 4 | CLR_GRAY),
-	  [maxrow]		"m" (maxrow),
-	  [maxcol]		"m" (maxcol),
-	  [int_video]		"i" (INT_VIDEO)
-	: "cc", "ax", "bh", "cx", "dx"
+      "       movw    %%ds, %%si	\n"	/* BIOS bug clears DS	*/
+      "       int     %[int_video]	\n"
+      "       movw    %%si, %%ds	\n"
+      :
+      : "a" ((u16_t)VID_SCROLLUP << 8 | 1),	/* AH = 0x06, AL = line	*/
+        "b" ((u16_t)(CLR_BLACK << 4 | CLR_GRAY) << 8),	/* BH = color	*/
+        "c" ((u16_t)0),				/* CX = upper left	*/
+        "d" ((u16_t)maxrow << 8 | maxcol),	/* DX = lower right	*/
+        [int_video] "i" (INT_VIDEO)
+      : "si", "bp"				/* BIOS bug		*/
     );
   }
 
   __asm__ __volatile__ (
-	"movb	%[vid_setcurpos], %%ah	\n"	/* set cursor position	*/
-	"movb	%[vidpage], %%bh	\n"	/* page number		*/
-	"movb	%[row], %%dh		\n"	/* row			*/
-	"movb	%[col], %%dl		\n"	/* column		*/
-	"int	%[int_video]		\n"	/* mod: -		*/
-	:
-	: [vid_setcurpos]	"i" (VID_SETCURPOS),
-	  [vidpage]		"m" (vidpage),
-	  [row]			"m" (row),
-	  [col]			"m" (col),
-	  [int_video]		"i" (INT_VIDEO)
-	: "cc", "ah", "bh", "dx"
+    "       int     %[int_video]	\n"
+    :
+    : "a" ((u16_t)VID_SETCURPOS << 8),		/* AH = 0x02		*/
+      "b" ((u16_t)vidpage << 8),		/* BH = page number	*/
+      "d" ((u16_t)row << 8 | col),		/* DH = row, DL = col	*/
+      [int_video]		"i" (INT_VIDEO)
   );
 }
 

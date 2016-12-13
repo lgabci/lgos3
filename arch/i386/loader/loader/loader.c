@@ -83,10 +83,9 @@ void loadkernel() {
         entry.segment, entry.offset);		/* jump to kernel	*/
 
       __asm__ __volatile__ (
-	"ljmp	*%[entry]	\n"
-	:
-	: [entry]	"m" (entry)
-	:
+        "       ljmp    *%[entry]	\n"
+        :
+        : [entry] "m" (entry)
       );
     }
   }

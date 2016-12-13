@@ -151,23 +151,23 @@ farptr_t memcpy_f(farptr_t dest, farptr_t src, size_t size) {
     len = MIN((size_t)(0x10000 - MAX(dest.offset, src.offset)), size);
 
     __asm__ __volatile__ (
-"	cld				\n"	/* increment index	*/
-"	movw	%[destsegm], %%es	\n"	/* set segment regs	*/
-"	movw	%[srcsegm], %%ds	\n"
-"rep	movsb				\n"	/* copy bytes		*/
-"	pushw	%%cs			\n"	/* restore DS, ES	*/
-"	popw	%%ds			\n"
-"	pushw	%%cs			\n"
-"	popw	%%es			\n"
-	: [dummy0]	"=D" (dummy),
-	  [dummy1]	"=S" (dummy),
-	  [dummy2]	"=c" (dummy)
-	: [destsegm]	"m" (dest.segment),
-	  [destoffs]	"D" (dest.offset),
-	  [srcsegm]	"m" (src.segment),
-	  [scroffs]	"S" (src.offset),
-	  [len]		"c" (len)
-	: "cc", "memory"
+      "       cld			\n"	/* increment index	*/
+      "       movw    %%ds, %%bx	\n"	/* save DS, ES		*/
+      "       movw    %%es, %%dx	\n"
+      "       movw    %[destsegm], %%es	\n"	/* set segment regs	*/
+      "       movw    %[srcsegm], %%ds	\n"
+      "rep    movsb			\n"	/* copy bytes		*/
+      "       movw    %%bx, %%ds	\n"	/* restore DS, ES	*/
+      "       movw    %%dx, %%es	\n"
+      : "=D" (dummy),
+        "=S" (dummy),
+        "=c" (dummy)
+      : [srcsegm] "m" (src.segment),
+        "S" (src.offset),
+        [destsegm] "m" (dest.segment),
+        "D" (dest.offset),
+        "c" (len)
+      : "cc", "bx", "dx", "memory"
     );
 
     dest = farptradd(dest, len);
@@ -214,18 +214,18 @@ farptr_t memset_f(farptr_t s, char c, size_t n) {
     len = MIN((size_t)(0x10000 - s.offset), n);
 
     __asm__ __volatile__ (
-"	cld				\n"	/* increment index	*/
-"	movw	%[segm], %%es		\n"	/* set segment regs	*/
-"rep	stosb				\n"	/* set byte values	*/
-"	pushw	%%cs			\n"	/* restore ES		*/
-"	popw	%%es			\n"
-	: [dummy0]	"=D" (dummy),
-	  [dummy1]	"=c" (dummy)
-	: [segm]	"m" (s.segment),
-	  [offs]	"D" (s.offset),
-	  [len]		"c" (len),
-	  [c]		"a" (c)
-	: "cc", "memory"
+      "       cld			\n"	/* increment index	*/
+      "       movw    %%es, %%dx	\n"	/* save ES		*/
+      "       movw    %[segm], %%es	\n"	/* set segment regs	*/
+      "rep    stosb			\n"	/* set byte values	*/
+      "       movw    %%dx, %%es	\n"	/* restore ES		*/
+      : "=D" (dummy),
+        "=c" (dummy)
+      : [segm]	"m" (s.segment),
+        "D" (s.offset),
+        "c" (len),
+        "a" (c)
+      : "cc", "dx", "memory"
     );
 
     s = farptradd(s, len);
@@ -376,7 +376,7 @@ void halt() {
   printf("halt");
 
   __asm__ __volatile__ (
-"	jmp	_halt			\n"	/* jump to asm halt	*/
+    "       jmp     _halt		\n"	/* jump to asm halt	*/
   );
   __builtin_unreachable();			/* asm noreturn		*/
 }

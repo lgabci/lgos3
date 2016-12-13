@@ -28,21 +28,6 @@ __asm__ (".code16gcc");				/* compile 16 bit code */
 #define	PARTTYPE_FAT32_LBA	0x0c	/* FAT32 LBA			*/
 #define	PARTTYPE_FAT16_LBA	0x0e	/* FAT16 LBA			*/
 
-/* set status in inline asm statements
-status variable must be %0
-*/
-/* // variable variable a %0 helyett */
-#define	SET_DISK_STATUS							   \
-"	jc	.Lerror%=		\n"	/* error?		*/ \
-"	xorb	%%ah, %%ah		\n"	/* no, status = 0	*/ \
-"	jmp	.Lend%=			\n"				   \
-".Lerror%=:				\n"	/* error		*/ \
-"	orb	%%ah, %%ah		\n"				   \
-"	jnz	.Lend%=			\n"	/* status == 0? */	   \
-"	incb	%%ah			\n"	/* yes, set it to 1 */	   \
-".Lend%=:				\n"				   \
-"	movb	%%ah, %0		\n"
-
 struct errtext_s {
   const u8_t errcode;			/* error code, status		*/
   const char *errtext;			/* error text			*/
@@ -168,30 +153,31 @@ static errtext_t errtexts[] = {		/* INT 13 BIOS status texts	*/
 
 static void *diskcache = NULL;
 
-static void diskerror(u8_t status);
+static void diskerror(u8_t errflg, u8_t status);
 static void initdisk(const char *dev);
 static void readphyssec(u64_t sector, u16_t segment);
 static u16_t readcachedsec(u64_t sector);
 static void readdiskbytes(u64_t byteaddr, u32_t size, farptr_t dest);
 
 /* print error message and halt
-print disk error message and halt machine if status is not 0
+print disk error message and halt machine if errflg is not 0
 - for use only in this .c file
-input:	status of disk operation
+input:	error flag (0 = no error)
+	status of disk operation
 output:	-
 */
-static void diskerror(u8_t status) {
+static void diskerror(u8_t errflg, u8_t status) {
   u8_t i;
   char *text;
 
-  if (status) {				/* if status means error	*/
-    text = 0;
+  if (errflg) {				/* if there was an error	*/
+    text = NULL;
     for (i = 0; i < sizeof(errtexts) / sizeof(errtext_t); i ++) {
       if (errtexts[i].errcode == status) {
         text = (char *)errtexts[i].errtext;
       }
     }
-    if (text == 0) {
+    if (text == NULL) {
       text = "unknown error";
     }
 
@@ -206,10 +192,10 @@ output:	-
 */
 void stopfloppy() {
   __asm__ __volatile__ (
-"	callw	_stopfloppy		\n"	/* call asm function	*/
-	:
-	:
-	: "al", "dx"
+    "       callw   _stopfloppy		\n"	/* call asm function	*/
+    :
+    :
+    : "al", "dx"
   );
 }
 
@@ -225,6 +211,7 @@ static void initdisk(const char *dev) {
   u8_t part;
   u16_t checksum;
   u16_t apibitmap;
+  u8_t errflg;					/* disk error flag	*/
   u8_t status;
   int i;
 
@@ -272,31 +259,27 @@ static void initdisk(const char *dev) {
   else {
     stoperror("Invalid partition: %s", dev);
   }
-
   if (! driveprm.initialized || driveprm.drive != disk) {
+    u32_t dummy;
     driveprm.drive = disk;			/* slot for this disk	*/
 
     __asm__ __volatile__  (			/* check BIOS extension	*/
-"	movb	%4, %%ah		\n"	/* AH = 0x41h		*/
-"	movw	%5, %%bx		\n"	/* BX = 0x55aa		*/
-"	movb	%6, %%dl		\n"	/* DL = drive		*/
-"	int	%3			\n"
-
-"	movw	%%bx, %1		\n"	/* cheksum		*/
-"	movw	%%cx, %2		\n"	/* API bitmap		*/
-	SET_DISK_STATUS
-
-	: "=m" (status),		/* %0 */
-	  "=m" (checksum),		/* %1 */
-	  "=m" (apibitmap)		/* %2 */
-	: "i" (INT_DISK),		/* %3 */
-	  "i" (DISK_EXTCHK),		/* %4 */
-	  "i" (0x55aa),			/* %5 */
-	  "m" (disk)			/* %6 */
-	: "cc", "ax", "bx", "cx", "dx"
-
+      "       int     %[int_disk]		\n"
+      "       movb    $0, %[errflg]		\n"
+      "       adcb    $0, %[errflg]		\n"	/* error flag	*/
+      "       movb    %%ah, %%al		\n"	/* status -> AL	*/
+      : [errflg] "=m" (errflg),		/* error flag, CF	*/
+        "=a" (status),		/* AH = status/major version	*/
+        "=b" (checksum),		/* BX = 0xaa55		*/
+        "=c" (apibitmap),		/* API support bitmap	*/
+        "=d" (dummy)			/* DH = ext. version	*/
+      : [int_disk] "i" (INT_DISK),
+        "a"  ((u16_t)DISK_EXTCHK << 8),	/* AH = 0x41h		*/
+        "b"  (0x55aa),			/* BX = 0x55aah		*/
+        "d"  (disk)			/* DL = drive		*/
+      : "cc"
     );
-    driveprm.extbios = status == 0 && checksum == 0xaa55 && apibitmap & 0x1;
+    driveprm.extbios = ! errflg && checksum == 0xaa55 && apibitmap & 0x1;
 
     if (driveprm.extbios) {			/* BIOS ext. found	*/
       extprms_t extprms;			/* buffer for drive params */
@@ -304,20 +287,19 @@ static void initdisk(const char *dev) {
       extprms.size = 0x1a;			/* BIOS ext ver 1.x	*/
       extprms.flags = 0;			/* BIOS bug, must be 0	*/
       __asm__ __volatile__ (		/* ext get drive parameters	*/
-"	movb	%2, %%ah		\n"
-"	movb	%3, %%dl		\n"
-"	leaw	%4, %%si		\n"
-"	int	%1			\n"
-	SET_DISK_STATUS
-
-	: "=m" (status)			/* %0 */
-	: "i" (INT_DISK),		/* %1 */
-	  "i" (DISK_EXTGETPRM),		/* %2 */
-	  "m" (disk),			/* %3 */
-	  "m" (extprms)			/* %4 */
-	: "cc", "ah", "dl", "si", "memory"
+        "       int     %[int_disk]		\n"
+        "       movb    $0, %[errflg]		\n"
+        "       adcb    $0, %[errflg]		\n"	/* error flag	*/
+        "       movb    %%ah, %%al		\n"	/* status -> AL	*/
+        : [errflg] "=m" (errflg),		/* error flag, CF	*/
+          "=a" (status)				/* AH = status		*/
+        : [int_disk] "i" (INT_DISK),
+          "a" ((u16_t)DISK_EXTGETPRM << 8),		/* AH = 0x48	*/
+          "d" (disk),					/* DL = drive	*/
+          "S" (&extprms)		/* SI = buffer for drive params	*/
+        : "cc", "memory"		/* memory: DS:SI buffer filled	*/
       );
-      diskerror(status);			/* succesful?		*/
+      diskerror(errflg, status);		/* succesful?		*/
 
       if (extprms.flags & 2) {	/* cyl/head/sec information valid	*/
         driveprm.cyls = extprms.cyls;
@@ -333,48 +315,51 @@ static void initdisk(const char *dev) {
       driveprm.bytes = extprms.bytes;			/* bytes / sec	*/
     }
     else {				/* BIOS extension not found	*/
+      u8_t errflg;				/* disk error flag	*/
       u16_t cylsecs;
       u8_t heads;
+      u16_t ds;
+      u16_t es;
 
       __asm__ __volatile__ (			/* get drive parameters	*/
-"	movb	%4, %%ah		\n"	/* AH = 8		*/
-"	movb	%6, %%dl		\n"	/* DL = drive		*/
-"	pushw	%%di			\n"	/* save DI		*/
-"	pushw	%%si			\n"	/* save SI		*/
-"	pushw	%%bp			\n"	/* save BP		*/
-"	pushw	%%es			\n"	/* save ES		*/
-"	pushw	%%ds			\n"	/* BIOS bug: save DS	*/
-"	int	%3			\n"
-"	popw	%%ds			\n"	/* BIOS bug: restore DS	*/
-"	popw	%%es			\n"	/* restore ES		*/
-"	popw	%%bp			\n"	/* restore BP		*/
-"	popw	%%si			\n"	/* restore SI		*/
-"	popw	%%di			\n"	/* restore DI		*/
-"	sti				\n"  /* BIOS bug: int may disabled */
-
-"	movb	%5, %%ah		\n"	/* BIOS bug:		*/
-"	movb	%6, %%dl		\n"	/* must get status of	*/
-"	int	%3			\n"	/* last operation	*/
-
-"	movw	%%cx, %1		\n"	/* max cyl & sector num	*/
-"	movb	%%dh, %2		\n"	/* max head number	*/
-	SET_DISK_STATUS
-
-	: "=m" (status),		/* %0 */
-	  "=m" (cylsecs),		/* %1 */
-	  "=m" (heads)			/* %2 */
-	: "i" (INT_DISK),		/* %3 */
-	  "i" (DISK_GETPRM),		/* %4 */
-	  "i" (DISK_GETSTAT),		/* %5 */
-	  "m" (disk)			/* %6 */
-	: "cc", "ax", "bl", "cx", "dx"
+        "       movw    %%ds, %[ds]	\n"	/* BIOS bug: save DS	*/
+        "       movw    %%es, %[es]	\n"	/* save ES		*/
+        "       int     %[int_disk]	\n"
+        "       movw    %[ds], %%ds	\n"	/* BIOS bug: restore DS	*/
+        "       movw    %[es], %%es	\n"	/* restore ES		*/
+        "       sti			\n"	/* BIOS bug		*/
+        "       movb    %%dh, %%dl	\n"	/* max head number	*/
+        : "=a" (status),	/* artifical dep: order of asm blocks	*/
+          "=c" (cylsecs),			/* CX = cyl & sectors	*/
+          "=d" (heads),				/* DH = max head number	*/
+          [ds] "=m" (ds),			/* store DS, ES		*/
+          [es] "=m" (es)
+        : [int_disk] "i" (INT_DISK),
+          "a" ((u16_t)DISK_GETPRM << 8),	/* AH = 0x08		*/
+          "d" (disk)				/* DL = drive		*/
+        : "cc", "bl", "di", "si", "bp"
       );
-      if (status != 0 && disk == 0) {	/* unreported 360 KB floppy?	*/
+
+      __asm__ __volatile__ (	/* BIOS bug: we must get last status	*/
+        "       int     %[int_disk]	\n"
+        "       movb    $0, %[errflg]	\n"
+        "       adcb    $0, %[errflg]	\n"	/* error flag		*/
+// Some BIOSes return the status in AL; the PS/2 Model 30/286 returns the status in both AH and AL 
+        "       movb     %%ah, %%al	\n"	/* error status		*/
+        : [errflg] "=m" (errflg),		/* error flag, CF	*/
+          "=a" (status)				/* AH = status		*/
+        : [int_disk] "i" (INT_DISK),
+          "a" ((u16_t)DISK_GETSTAT << 8),	/* AH = 0x01		*/
+          "d" (disk)				/* DL = drive		*/
+        : "cc"
+      );
+
+      if (errflg && disk == 0) {	/* unreported 360 KB floppy?	*/
         heads = 1;		/* if not exists, then first read	*/
         cylsecs = (39 << 8) + 9;	/* gets an error, and stops	*/
       }
       else {
-        diskerror(status);			/* succesful?		*/
+        diskerror(errflg, status);		/* succesful?		*/
       }
 
       driveprm.cyls = ((cylsecs & 0xc0) << 2 | cylsecs >> 8) + 1; /* 0 based */
@@ -427,7 +412,7 @@ static void initdisk(const char *dev) {
 
       readdiskbytes(0x1fe, 2, farptr(&mbrsign));  /* read partition sign. */
       if (mbrsign != 0xaa55) {
-        stoperror("Invalid partition signature: %02x.", mbrsign);
+        stoperror("Invalid partition signature: 0x%04x.", mbrsign);
       }
 
       if (part < 1 || part > 4) {	/* only valid partition number	*/
@@ -518,6 +503,7 @@ input:	sector	64 bit sector number
 output:	readed sector at segment:0
 */
 static void readphyssec(u64_t sector, u16_t segment) {
+  u8_t errflg;
   u8_t status;
 
   if (sector >= driveprm.totsecs) {
@@ -529,24 +515,24 @@ static void readphyssec(u64_t sector, u16_t segment) {
     dap_t dap = {0x10, 0, 1, 0, segment, sector};	/* DAP		*/
 
     __asm__ __volatile__ (			/* ext. read		*/
-"	movb	%2, %%ah		\n"	/* AH = 42h		*/
-"	movb	%3, %%dl		\n"	/* BIOS disk ID		*/
-"	leaw	%4, %%si		\n"	/* address of DAP	*/
-"	int	%1			\n"
-	SET_DISK_STATUS
-
-	: "=m" (status)			/* %0 */
-	: "i" (INT_DISK),		/* %1 */
-	  "i" (DISK_EXTREAD),		/* %2 */
-	  "m" (driveprm.drive),		/* %3 */
-	  "m" (dap)
-	: "cc", "ah", "dl", "si", "memory"
+      "       int     %[int_disk]	\n"
+      "       movb    $0, %[errflg]	\n"
+      "       adcb    $0, %[errflg]	\n"	/* error flag		*/
+      "       movb    %%ah, %%al	\n"	/* error status		*/
+        : [errflg] "=m" (errflg),		/* error flag, CF	*/
+          "=a" (status)				/* AH = status		*/
+        : [int_disk] "i" (INT_DISK),
+          "a" ((u16_t)DISK_EXTREAD << 8),	/* AH = 0x42		*/
+          "d" (driveprm.drive),			/* DL = drive		*/
+          "S" (&dap)		/* SI = pointer to disk address packet	*/
+        : "cc", "memory"
     );
   }
   else {					/* BIOS ext not found	*/
     u16_t cylsec;
     u8_t head;
     int i;
+    u16_t dummy;
 
     head = sector / driveprm.secs % driveprm.heads;	/* head		*/
     cylsec = sector / driveprm.secs / driveprm.heads;	/* cylinder	*/
@@ -555,55 +541,53 @@ static void readphyssec(u64_t sector, u16_t segment) {
 
     for (i = 0; i < DISK_RETRYCNT; i ++) {
       __asm__ __volatile__ (			/* read sectors		*/
-"	movb	%2, %%ah		\n"	/* AH = 2		*/
-"	movb	$1, %%al		\n"	/* only 1 sector	*/
-"	movw	%3, %%cx		\n"	/* cyl & sector number	*/
-"	movb	%4, %%dh		\n"	/* head number		*/
-"	movb	%5, %%dl		\n"	/* drive number		*/
-"	xorw	%%bx, %%bx		\n"	/* offset		*/
-"	movw	%6, %%si		\n"	/* segment -> SI	*/
-"	pushw	%%es			\n"	/* save ES		*/
-"	movw	%%si, %%es		\n"	/* segment		*/
-"	stc				\n"	/* BIOS bug: set CF	*/
-"	int	%1			\n"
-"	sti				\n"	/* BIOS bug: set IF	*/
-"	popw	%%es			\n"	/* restore ES		*/
-	SET_DISK_STATUS
-
-	: "=m" (status)			/* %0 */
-	: "i" (INT_DISK),		/* %1 */
-	  "i" (DISK_READ),		/* %2 */
-	  "m" (cylsec),			/* %3 */
-	  "m" (head),			/* %4 */
-	  "m" (driveprm.drive),		/* %5 */
-	  "m" (segment)			/* %6 */
-	: "cc", "ax", "bx", "cx", "dx", "si"
+        "       movw    %%es, %%si	\n"	/* save ES (no stack)	*/
+        "       movw    %[segment], %%es	\n"	/* ES = segm	*/
+        "       stc			\n"	/* BIOS bug: set CF	*/
+        "       cli			\n"	/* BIOS bug: clear IF	*/
+        "       int     %[int_disk]	\n"
+        "       sti			\n"	/* BIOS bug: set IF	*/
+        "       movw    %%si, %%es	\n"	/* restore ES		*/
+        "       movb    $0, %[errflg]	\n"
+        "       adcb    $0, %[errflg]	\n"	/* error flag		*/
+        "       movb    %%ah, %%al	\n"	/* error status		*/
+        : [errflg] "=m" (errflg),		/* error flag, CF	*/
+          "=a" (status),			/* AH = status		*/
+          "=d" (dummy)				/* BIOS bug		*/
+        : [int_disk] "i" (INT_DISK),
+          "a" ((u16_t)DISK_READ << 8 | 1),	/* AH = 0x02, AL = 0x01	*/
+          "c" (cylsec),				/* CX = cyls & sectors	*/
+          "d" ((u16_t)head << 8 | driveprm.drive),	/* DX = hd, drv	*/
+          [segment] "m" (segment),		/* data buffer segment	*/
+          "b" ((u16_t)0)
+        : "cc", "si", "memory"
       );
 
-      if (status) {			/* reset, if error occured	*/
+      if (errflg) {			/* reset, if error occured	*/
+        u8_t errflg;
         u8_t status;
 
         __asm__ __volatile__ (
-"	movb	%2, %%ah		\n"	/* AH = 0		*/
-"	movb	%3, %%dl		\n"	/* BIOS disk ID		*/
-"	int	%1			\n"
-	SET_DISK_STATUS
-
-	: "=m" (status)			/* %0 */
-	: "i" (INT_DISK),		/* %1 */
-	  "i" (DISK_RESET),		/* %2 */
-	  "m" (driveprm.drive)		/* %3 */
-	: "cc", "ah", "dl"
+          "       int     %[int_disk]	\n"
+          "       movb    $0, %[errflg]	\n"
+          "       adcb    $0, %[errflg]	\n"	/* error flag		*/
+          "       movb    %%ah, %%al	\n"	/* error status		*/
+          : [errflg] "=m" (errflg),		/* error flag, CF	*/
+            "=a" (status)			/* AH = status		*/
+          : [int_disk] "i" (INT_DISK),
+            "a" ((u16_t)DISK_RESET << 8),	/* AH = 0x00		*/
+            "d" (driveprm.drive)		/* DL = drive		*/
+          : "cc"
         );
 						/* reset: stop on error	*/
-        diskerror(status);			/* succesful?		*/
+        diskerror(errflg, status);		/* succesful?		*/
       }
       else {			/* exit loop on succesful execution	*/
         break;
       }
     }
   }
-  diskerror(status);			/* succesful?		*/
+  diskerror(errflg, status);			/* succesful?		*/
 }
 
 /* read cached sector
@@ -742,7 +726,7 @@ u64_t getfilesize() {
     case PARTTYPE_LINUX:		/* Linux partition		*/
       return getext2filesize();
       break;
-    case PARTTYPE_FAT12:		/* FAT partition	*/
+    case PARTTYPE_FAT12:		/* FAT partition		*/
     case PARTTYPE_FAT16_32M:
     case PARTTYPE_FAT16:
     case PARTTYPE_FAT32:
