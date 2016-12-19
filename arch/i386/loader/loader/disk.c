@@ -344,8 +344,7 @@ static void initdisk(const char *dev) {
         "       int     %[int_disk]	\n"
         "       movb    $0, %[errflg]	\n"
         "       adcb    $0, %[errflg]	\n"	/* error flag		*/
-// Some BIOSes return the status in AL; the PS/2 Model 30/286 returns the status in both AH and AL 
-        "       movb     %%ah, %%al	\n"	/* error status		*/
+        "       orb     %%ah, %%al	\n"	/* error stat, BIOS bug	*/
         : [errflg] "=m" (errflg),		/* error flag, CF	*/
           "=a" (status)				/* AH = status		*/
         : [int_disk] "i" (INT_DISK),
@@ -356,7 +355,7 @@ static void initdisk(const char *dev) {
 
       if (errflg && disk == 0) {	/* unreported 360 KB floppy?	*/
         heads = 1;		/* if not exists, then first read	*/
-        cylsecs = (39 << 8) + 9;	/* gets an error, and stops	*/
+        cylsecs = ((u16_t)39 << 8) + 9;	/* gets an error, and stops	*/
       }
       else {
         diskerror(errflg, status);		/* succesful?		*/
@@ -610,7 +609,7 @@ static u16_t readcachedsec(u64_t sector) {
     if (driveprm.cacheeptr[i].readcnt &&
       driveprm.cacheeptr[i].sector == sector) {	/* cache hit		*/
       driveprm.cacheeptr[i].readcnt = ++ readcnt;
-//      { u8_t c = getcolor(); setcolor(CLR_LGREEN);  printf("[%llu] ", sector); setcolor(c); }	/*// */
+//      { u8_t c = getcolor(); setcolor(CLR_LGREEN);  printf("[%llu] ", sector); setcolor(c); }	//
       return driveprm.cacheseg + (i * driveprm.bytes >> 4);
     }
     if (driveprm.cacheeptr[i].readcnt < mincnt) {
@@ -623,7 +622,7 @@ static u16_t readcachedsec(u64_t sector) {
   driveprm.cacheeptr[oldpos].sector = sector;
   retseg = driveprm.cacheseg + (oldpos * driveprm.bytes >> 4);
   readphyssec(sector, retseg);
-//  { u8_t c = getcolor(); setcolor(CLR_LRED);  printf("[%llu] ", sector); setcolor(c); }	/* // */
+//  { u8_t c = getcolor(); setcolor(CLR_LRED);  printf("[%llu] ", sector); setcolor(c); }	//
 
   return retseg;
 }
