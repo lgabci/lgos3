@@ -70,7 +70,7 @@ function set_and_check_params {
 # install packages
 function install_packages {
   # install packages
-  pkgnames="sudo vim mc screen git gcc gcc-doc gdb gdb-doc logapp make make-doc qemu dosfstools"
+  pkgnames="sudo vim mc screen git gcc gcc-doc gdb gdb-doc logapp make make-doc qemu dosfstools bochs"
   installedpkgs=$(dpkg -l $pkgnames 2>/dev/null | awk -F '[ :]+' '{if ($1 == "ii") {print($2)}}')
   pkgnames=$(echo "$pkgnames" | tr ' ' '\n' | grep -Fvx "$installedpkgs" | tr '\n' ' ')
   if [ -n "$pkgnames" ]; then
