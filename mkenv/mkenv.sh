@@ -165,7 +165,7 @@ tail $HOMEDIR/.bashrc $USERNAME:$USERNAME 644
 tail /etc/sudoers root:root 440"
       ;;
     /etc/sudoers.d/$USERNAME)
-      echo "$USERNAME	$HOSTNAME = NOPASSWD: $HOMEDIR/$INSTALLDIR/arch/i386/qemu/mkdisk.sh"
+      echo "$USERNAME	$HOSTNAME = NOPASSWD: $HOMEDIR/$INSTALLDIR/arch/i386/emu/mkdisk.sh"
       ;;
     $HOMEDIR/.logapprc)
       echo "logfile="
