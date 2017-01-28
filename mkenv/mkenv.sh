@@ -162,7 +162,8 @@ cp /usr/local/bin/screen.sh root:staff 755
 cp $HOMEDIR/.screenrc $USERNAME:$USERNAME 644
 cp /etc/screenrc root:root 644
 tail $HOMEDIR/.bashrc $USERNAME:$USERNAME 644
-tail /etc/sudoers root:root 440"
+tail /etc/sudoers root:root 440
+cp $HOMEDIR/.vimrc $USERNAME:$USERNAME 644"
       ;;
     /etc/sudoers.d/$USERNAME)
       echo "$USERNAME	$HOSTNAME = NOPASSWD: $HOMEDIR/$INSTALLDIR/arch/i386/emu/mkdisk.sh"
@@ -422,6 +423,15 @@ fi'
       ;;
     /etc/sudoers)
       echo '#includedir /etc/sudoers.d'
+      ;;
+    $HOMEDIR/.vimrc)
+      echo 'syntax on
+if has("autocmd")
+  autocmd BufReadPost *
+    \ if line("'\''\"") > 1 && line("'\''\"") <= line("$") |
+    \   exe "normal! g`\"" |
+    \ endif
+endif'
       ;;
     *)
       echo "File content not found: \"$1\"" >&2
