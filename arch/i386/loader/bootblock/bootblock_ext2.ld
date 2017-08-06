@@ -3,7 +3,7 @@ OUTPUT_FORMAT(elf32-i386)
 ENTRY(start)
 
 MEMORY {
-  ram  : ORIGIN = 0,     LENGTH = 0x1be
+  ram  : ORIGIN = 0,     LENGTH = 0x1fe
   bsgn : ORIGIN = 0x1fe, LENGTH = 2
   bss  : ORIGIN = 0x200, LENGTH = 0x200
 }

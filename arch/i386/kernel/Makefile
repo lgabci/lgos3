@@ -1,13 +1,13 @@
 # i386 kernel init makefile
 ARCH := i386
 
-AS := as
+AS := i686-elf-as
 ASFLAGS := --32 -march=$(ARCH)
 
-CC := gcc
+CC := i686-elf-gcc
 CCFLAGS := -m32 -march=$(ARCH) -S -O2 -nostdlib -nostdinc -ffreestanding -std=c99 -pedantic -Werror -Wall -Wextra -fomit-frame-pointer -fno-asynchronous-unwind-tables
 
-LD := ld
+LD := i686-elf-ld
 LDFLAGS := -m elf_i386
 
 .DELETE_ON_ERROR :
@@ -24,12 +24,12 @@ init.elf : init.o
 	chmod -x $@
 
 init.bin : init.elf
-	objcopy -O binary $< $@
+	i686-elf-objcopy -O binary $< $@
 	chmod -x $@
 
 # disassemble kernel -----------------------------------------------------------
 disasm : init.bin
-	objdump -D -b binary -mi386 -Maddr16,data16 $< | less
+	i686-elf-objdump -D -b binary -mi386 -Maddr16,data16 $< | less
 
 # clean ------------------------------------------------------------------------
 clean :

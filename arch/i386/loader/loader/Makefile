@@ -2,13 +2,13 @@
 # this loader is for i386 only
 ARCH := i386
 
-AS := as
+AS := i686-elf-as
 ASFLAGS := --32 -march=$(ARCH)
 
-CC := gcc
-CCFLAGS := -m32 -march=$(ARCH) -S -O2 -nostdlib -nostdinc -ffreestanding -std=c99 -pedantic -Werror -Wall -Wextra -Wunreachable-code -fomit-frame-pointer -fno-asynchronous-unwind-tables
+CC := i686-elf-gcc
+CCFLAGS := -m16 -march=$(ARCH) -S -O3 -ffreestanding -std=c99 -pedantic -Werror -Wall -Wextra
 
-LD := ld
+LD := i686-elf-ld
 LDFLAGS :=
 
 .DELETE_ON_ERROR :
@@ -35,15 +35,14 @@ loaderobjs := $(loaderobjs) init.o
 loader.elf : $(loaderobjs)
 	$(LD) $(LDFLAGS) -T $(patsubst %.elf,%.ld,$@) -Map=$(patsubst %.elf,%.map,$@) -o $@ $^
 	chmod -x $@
-	strip $@
 
 loader.bin : loader.elf
-	objcopy -O binary $< $@
+	i686-elf-objcopy -O binary $< $@
 	chmod -x $@
 
 # disassemble loader -----------------------------------------------------------
 disasm : loader.bin
-	objdump -D -b binary -mi386 -Maddr16,data16 $< | less
+	i686-elf-objdump -D -b binary -mi386 -Maddr16,data16 $< | less
 
 # clean ------------------------------------------------------------------------
 clean :

@@ -345,6 +345,7 @@ static void initdisk(const char *dev) {
         "       movb    $0, %[errflg]	\n"
         "       adcb    $0, %[errflg]	\n"	/* error flag		*/
         "       orb     %%ah, %%al	\n"	/* error stat, BIOS bug	*/
+	// must use errflg and status from DISK_GETPRM, not from here!
         : [errflg] "=m" (errflg),		/* error flag, CF	*/
           "=a" (status)				/* AH = status		*/
         : [int_disk] "i" (INT_DISK),
@@ -353,13 +354,7 @@ static void initdisk(const char *dev) {
         : "cc"
       );
 
-      if (errflg && disk == 0) {	/* unreported 360 KB floppy?	*/
-        heads = 1;		/* if not exists, then first read	*/
-        cylsecs = ((u16_t)39 << 8) + 9;	/* gets an error, and stops	*/
-      }
-      else {
-        diskerror(errflg, status);		/* succesful?		*/
-      }
+      diskerror(errflg, status);		/* succesful?		*/
 
       driveprm.cyls = ((cylsecs & 0xc0) << 2 | cylsecs >> 8) + 1; /* 0 based */
       driveprm.heads = heads + 1;			/* 0 based	*/

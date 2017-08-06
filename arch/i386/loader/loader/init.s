@@ -3,7 +3,6 @@
 .code16
 
 .equ STACKSIZE,	0x1000			# stack size in bytes
-.equ LOADERCFGPATHSIZE, 0x100		# loader config file path max length
 
 .equ INT_VIDEO, 0x10			# video interrupt
 .equ VID_TELETYPE, 0x0e			# write teletype output
@@ -20,7 +19,6 @@ start:
 	inb	$0x71, %al
 
 	movw	%cs, %ax			# set segment regs.
-	movw	%ds, %bx			# save old DS
 	movw	%ax, %ds
 	movw	%ax, %es
 	movw	%ax, %ss
@@ -66,16 +64,6 @@ start:
 	movw	%ds, %ax			# set FS, GS segment registers
 	movw	%ax, %fs
 	movw	%ax, %gs
-
-	movw	$loadercfgpath, %di		# copy loaderpath
-	movw	$LOADERCFGPATHSIZE - 1, %cx
-	cld					# incerement index
-	pushw	%ds
-	movw	%bx, %ds
-rep	movsb
-	xorb	%al, %al			# tailing zero
-	stosb					# if it not exists
-	popw	%ds
 
 	jmp	loadkernel			# jump to C source
 
@@ -127,9 +115,6 @@ strno386:	.string "LGOS loader requires 80386 or better CPU."
 
 .globl stack	##
 .lcomm stack, STACKSIZE				# stack
-
-.globl loadercfgpath
-.lcomm loadercfgpath, LOADERCFGPATHSIZE		# loader config file path
 
 .globl dataseg
 .lcomm dataseg, 2				# data segment (= all segments)

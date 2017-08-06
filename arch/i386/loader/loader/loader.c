@@ -12,6 +12,9 @@ __asm__ (".code16gcc");				/* compile 16 bit code	*/
 
 void loadkernel() __attribute__ ((noreturn));	/* load & start kernel	*/
 
+#define CFGLEN	0x100			/* max lenght of cfg path	*/
+static char loadercfgpath[CFGLEN] = "\0 ";	/* cfg path -> .data	*/
+
 /* read kernel
 read loader config file (kernel path & parameters)
 read kernel
@@ -26,6 +29,11 @@ void loadkernel() {
   initvideo();
   setcolor(CLR_BLUE << 4 | CLR_YELLOW);
   printf("  -= LGOS 3 loader =-  \n");
+
+  if (strlen(loadercfgpath) == 0) {	/* empty cfg file name	*/
+    stoperror("Loader config file name is empty.\n");
+  }
+
   setcolor(CLR_GREEN);
   printf("loader config: %s\n", loadercfgpath);
 
