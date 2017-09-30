@@ -38,14 +38,13 @@ $(KERNEL).elf : $(SOBJECTS) $(COBJECTS)
 	chmod -x $@
 
 $(KERNEL).bin : $(KERNEL).elf
-	objcopy -O binary $< $@
+	i686-elf-objcopy -O binary $< $@
 	chmod -x $@
 
 # disassemble kernel -----------------------------------------------------------
 disasm : $(KERNEL).elf
-	objdump -d $< | less
+	i686-elf-objdump -d $< | less
 
 # clean ------------------------------------------------------------------------
 clean :
 	rm -f $(SOBJECTS) $(COBJECTS) $(COBJECTS:.o=.d) $(KERNEL).elf $(KERNEL).map $(KERNEL).bin
-
