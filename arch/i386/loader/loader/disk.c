@@ -151,7 +151,7 @@ static errtext_t errtexts[] = {		/* INT 13 BIOS status texts	*/
   {0xff, "sense operation failed"}
 };
 
-static void *diskcache = NULL;
+static cachee_t *diskcache = NULL;
 
 static void diskerror(u8_t errflg, u8_t status);
 static void initdisk(const char *dev);
@@ -367,19 +367,19 @@ static void initdisk(const char *dev) {
       farptr_t fp;
 
       fp = malloc(DISK_CACHESIZE, 0x10);
-      diskcache = (void *)(((u32_t)(fp.segment - dataseg) << 4) + fp.offset);
+      diskcache = farptr_physaddr(farptradd(fp, -((u32_t)dataseg << 4)));
     }
 
-    driveprm.cacheeptr = (cachee_t *)diskcache;		/* cache elem.s	*/
+    driveprm.cacheeptr = diskcache;		/* cache elements	*/
     driveprm.cacheentrynum = DISK_CACHESIZE / driveprm.bytes; /* cache entrs */
 
-    if ((u32_t)((cachee_t *)diskcache + driveprm.cacheentrynum) > 0xffff) {
+    if ((u32_t)(diskcache + driveprm.cacheentrynum) > 0xffff) {
       stoperror("Can not allocate RAM for disk cache entries.");
     }
 
-    driveprm.cacheseg = (((dataseg << 4) +		/* cache segm.	*/
-      (u32_t)((cachee_t *)diskcache + driveprm.cacheentrynum) +
-      driveprm.bytes - 1) & -(u32_t)driveprm.bytes) >> 4;
+    driveprm.cacheseg =					/* cache segm.	*/
+      (((u32_t)farptr_physaddr(farptr(diskcache + driveprm.cacheentrynum)) +
+      driveprm.bytes - 1) & ~(u32_t)(driveprm.bytes - 1)) >> 4;
     readcnt = 0;					/* start sequence   */
     for (i = 0; i < driveprm.cacheentrynum; i ++) {	/* invalidate cache */
       driveprm.cacheeptr[i].readcnt = 0;
@@ -665,7 +665,7 @@ void readpartbytes(u64_t byteaddr, u32_t size, farptr_t dest) {
 }
 
 /* open file
-open a govenfile, readfile and getfilesize functions will operate on this file
+open a given file, readfile and getfilesize functions will operate on this file
 - use appropiate function for partition types
 - stop on error
 input:	filename, pointer to zero terminated string

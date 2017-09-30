@@ -61,7 +61,7 @@ readsector:	# --------------------------------------------------------------
 # IN:	DX:AX: LBA number of sector to read
 #	BX: segment adress (offset always zero)
 # OUT:	memory, halt on error
-# MOD:	AX, CX, DX, SI, flags
+# MOD:	AX, CX, DX, SI, DI, flags
 
 # S = lba % spt + 1	6 bits
 # H = lba / spt % h	8 bits

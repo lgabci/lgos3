@@ -1,13 +1,13 @@
 # i386 kernel init makefile
 ARCH := i386
 
-AS := as
-ASFLAGS := --32 -march=$(ARCH) --fatal-warnings
+AS := i686-elf-as
+ASFLAGS := --32 -march=$(ARCH)
 
-CC := gcc
+CC := i686-elf-gcc
 CCFLAGS := -m32 -march=$(ARCH) -S -O2 -nostdlib -nostdinc -ffreestanding -std=c99 -pedantic -Werror -Wall -Wextra -fomit-frame-pointer -fno-asynchronous-unwind-tables
 
-LD := ld
+LD := i686-elf-ld
 LDFLAGS := -m elf_i386
 
 COBJECTS := init.o paging.o descript.o

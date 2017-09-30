@@ -49,7 +49,8 @@ u64_t __umoddi3(u64_t n, u64_t d);
 
 farptr_t farptr(void *offset);			/* far pointer func.s	*/
 farptr_t farptrnorm(farptr_t p);
-farptr_t farptradd(farptr_t p, u32_t bytes);
+farptr_t farptradd(farptr_t p, u32_t size);
+void * farptr_physaddr(farptr_t p);
 
 size_t strlen(const char *);		/* str and mem functions	*/
 void *memcpy(void *dest, const void *src, size_t size);

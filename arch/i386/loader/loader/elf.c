@@ -108,7 +108,7 @@ typedef u16_t Elf64_Section_t;		/* section index (unsigned)	*/
 #define SHT_NOBITS	8		/* contains uninitialized space	*/
 #define SHT_REL		9		/* cont. REL reloc. entries	*/
 #define SHT_SHLIB	10		/* reserved			*/
-#define SHT_DYNSYM	11		/* cont. dynmic loader sym tab	*/
+#define SHT_DYNSYM	11		/* cont. dynamic loader sym tab	*/
 #define SHT_LOOS	0x60000000	/* environment specific use	*/
 #define SHT_HIOS	0x6fffffff	/* environment specific use	*/
 #define SHT_LOPROC	0x70000000	/* processor specific use	*/

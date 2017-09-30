@@ -6,9 +6,8 @@ __asm__ (".code16gcc");				/* compile 16 bit code	*/
 #include "init.h"
 #include "lib.h"
 
-#define MAX_REAL_MODE_ADDR	0xa0000		/* max mem is 640kB	*/
-
 extern int bssend;			/* end of bss, from loader.ld	*/
+extern u32_t ramsize;  		/* size of conventional RAM in bytes	*/
 
 /*
 64 bit division
@@ -89,17 +88,22 @@ input:	far pointer
 	integer to add
 output:	pointer + integer address
 */
-farptr_t farptradd(farptr_t p, u32_t bytes) {
+farptr_t farptradd(farptr_t p, u32_t size) {
   u32_t addr;
   farptr_t retp;
 
-  addr = ((u32_t)p.segment << 4) + p.offset + bytes;
-  if (addr > MAX_REAL_MODE_ADDR) {
-    stoperror("Real mode address over 0x%lx.", (u32_t)MAX_REAL_MODE_ADDR);
-  }
+  addr = (u32_t)farptr_physaddr(p) + size;
   retp.segment = addr >> 4;
   retp.offset = addr & 0x0f;
   return retp;
+}
+
+/* get physical address of a far ptr address
+input:	far pointer
+output:	physical address
+*/
+void * farptr_physaddr(farptr_t p) {
+  return (void *)(((u32_t)p.segment << 4) + p.offset);
 }
 
 /* length of a string
@@ -341,13 +345,16 @@ farptr_t malloc(u32_t size, u16_t align) {
   }
   if (align > 1) {				/* align, if need	*/
     u16_t alignmod;
-    alignmod = (((u32_t)bsstop.segment << 4) + bsstop.offset) % align;
+    alignmod = (u32_t)farptr_physaddr(bsstop) % align;
     if (alignmod > 0) {
       bsstop = farptradd(bsstop, align - alignmod);
     }
   }
   p = bsstop;					/* return value		*/
-  bsstop = farptradd(bsstop, size);		/* next top of BSS	*/
+  bsstop = farptradd(bsstop, size);		/* new top of BSS	*/
+  if ((u32_t)farptr_physaddr(bsstop) > ramsize) {
+    stoperror("Not enough memory to load kernel.");
+  }
   return farptrnorm(p);
 }
 

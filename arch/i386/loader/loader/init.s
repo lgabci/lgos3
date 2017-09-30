@@ -2,11 +2,13 @@
 .arch i8086
 .code16
 
-.equ STACKSIZE,	0x1000			# stack size in bytes
+.equ STACKSIZE,	0x400			# stack size in bytes (last 4 bits = 0)
 
 .equ INT_VIDEO, 0x10			# video interrupt
 .equ VID_TELETYPE, 0x0e			# write teletype output
 .equ VID_GETCURMODE, 0x0f		# get current video mode
+
+.equ INT_GETRAMSIZE, 0x12		# get RAM size in AX
 
 .extern bssend
 
@@ -14,20 +16,40 @@
 .globl start
 start:
 	cli					# disable interrupts
-	movb	$0x80, %al			# disable NMI
-	outb	%al, $0x70
-	inb	$0x71, %al
-
 	movw	%cs, %ax			# set segment regs.
 	movw	%ax, %ds
 	movw	%ax, %es
-	movw	%ax, %ss
-	movw	$stack + STACKSIZE, %sp		# set stack
-
+	subw	$0x10, %ax			# set up temp stack
+	movw	%ax, %ss			# 256 byte, below program
+	movw	$0x100, %sp
 	sti					# enable interrupts
-	movb	$0x00, %al			# enable NMI
-	outb	%al, $0x70
-	inb	$0x71, %al
+
+	int	$INT_GETRAMSIZE			# get RAM size in KB
+	movw	$0x400, %bx
+	mulw	%bx
+	movw	%ax, ramsize
+	movw	%dx, ramsize + 2
+
+	movw	%ds, %ax			# DX:AX = phys addr of bssend
+	movw	$0x10, %bx
+	mulw	%bx
+	addw	$bssend, %ax
+	adcw	$0, %dx
+
+	cmpw	ramsize + 2, %dx		# check if bssend is in RAM
+	jb	1f
+	cmpw	ramsize, %ax
+	jb	1f
+
+	movw	$strnoram, %si			# not enough RAM
+	call	.Lwrt
+	jmp	_halt
+1:
+	movw	%ds, %ax			# set stack
+	cli
+	movw	%ax, %ss
+	movw	$stack + STACKSIZE, %sp
+	sti
 
 	movw	$.bss, %di			# clear bss
 	movw	$bssend + 1, %cx
@@ -70,23 +92,21 @@ start:
 .arch i8086
 .Lno386:					# no 386 CPU found
 
-	movb	$VID_GETCURMODE, %ah		# get current video mode and page
-	xorb	%bh, %bh			# set to zero (if BIOS not set)
-	int	$INT_VIDEO
-	movb	%bh, vidpage			# store page
-
-	cld					# increment index
 	movw	$strno386, %si			# start of string
 	call	.Lwrt
 	jmp	_halt
 
 .Lwrt:						# write zero terminated string
+	movb	$VID_GETCURMODE, %ah		# get current video mode and page
+	xorb	%bh, %bh			# set to zero (if BIOS not set)
+	int	$INT_VIDEO			# BH = video page
+
 	movb	$VID_TELETYPE, %ah		# teletype output
-	movb	vidpage, %bh			# video page
 	movb	$0x7, %bl		# foreground color for graphics modes
+	cld					# increment index
 .Lwrtchr:
 	lodsb					# next char
-	orb	%al, %al			# test ending zero
+	testb	%al, %al			# test ending zero
 	jz	.Lwrtend
 	int	$INT_VIDEO			# write char
 	jmp	.Lwrtchr
@@ -109,13 +129,15 @@ _stopfloppy:					# stop floppy motors
 	ret
 
 .section .data	# --------------------------------------------------------------
+.globl ramsize
+ramsize:	.hword 0, 0			# RAM size in bytes
+
 strno386:	.string "LGOS loader requires 80386 or better CPU."
+strnoram:	.string "Not enough memory."
 
 .section .bss	# --------------------------------------------------------------
 
-.globl stack	##
 .lcomm stack, STACKSIZE				# stack
 
 .globl dataseg
 .lcomm dataseg, 2				# data segment (= all segments)
-.lcomm vidpage, 1				# current video page

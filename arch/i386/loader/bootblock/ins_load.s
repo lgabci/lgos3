@@ -5,6 +5,8 @@
 
 .equ LDRSEG, (LDSEG + SECSIZE >> 4)		# segment address of loader
 
+.equ INT_GETRAMSIZE, 0x12			# get memory size
+
 .section .text	# --------------------------------------------------------------
 
 load_ldr_2nd:	# --------------------------------------------------------------
@@ -18,11 +20,19 @@ load_ldr_2nd:	# --------------------------------------------------------------
 	movw	$LDSEG, %bx
 	call	readsector
 
+	int	$INT_GETRAMSIZE			# AX = KBs of RAM at 0x00000
+	movb	$10 - 4, %cl			# * 1024 / 16
+	shlw	%cl, %ax
+	subw	$SECSIZE >> 4, %ax
+	xchgw	%ax, %di	# DI = seg addr of (end of RAM - sector size)
 
 	movw	$SECSIZE >> 2, %cx		# max number of blocks to read
 	movw	$LDRSEG, %bx			# segment of loader
 	movw	$LDOFF, %si			# address of blocklist
 1:
+	cmpw	%di, %bx			# top of RAM?
+	ja	3f
+
 	cld					# increment index
 	lodsw					# LBA low word
 	xchgw	%ax, %dx
@@ -36,17 +46,29 @@ load_ldr_2nd:	# --------------------------------------------------------------
 
 	pushw	%cx				# read sector
 	pushw	%si
+	pushw	%di
 	call	readsector
+	popw	%di
 	popw	%si
 	popw	%cx
 
 	addw	$SECSIZE >> 4, %bx		# segment address of next block
 	loop	1b
 2:
+	cmpw	$LDRSEG, %bx			# readed one sector at least?
+	je	4f
+
 	ljmp	$LDRSEG, $0			# jump to loader
 
-cli ##
-hlt ##
+3:						# loader not fit into RAM
+	movw	$ramstr, %si
+	jmp	stoperr
+
+4:						# no sector readed
+	movw	$nrdstr, %si
+	jmp	stoperr
 
 .section .data	# --------------------------------------------------------------
 ldrblk:	.long 0					# LBA block of block file
+ramstr:	.string "Not enough memory."		# loader does not fit into RAM
+nrdstr:	.string "No sector readed."		# there was not readed sector
