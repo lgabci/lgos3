@@ -12,11 +12,21 @@
 load_ldr_2nd:	# --------------------------------------------------------------
 # load 2nd stage loader
 # IN:	-
-# OUT:	load loadewr into memory and jump to it, halts machine on error
+# OUT:	load loader into memory and jump to it, halts machine on error
 # MOD:	AX, BX, CX, DX, SI, flags
 				# read blocklist file (512 byte)
 	movw	(ldrblk), %ax			# DX:AX = LBA
 	movw	(ldrblk + 2), %dx
+
+	pushw	%ax				# ldrblk = 0 ?
+	orw	%dx, %ax
+	popw	%ax
+	jnz	1f
+
+	movw	$nrdstr, %si			# ldrblk is zero
+	jmp	stoperr
+1:
+
 	movw	$LDSEG, %bx
 	call	readsector
 
@@ -71,4 +81,4 @@ load_ldr_2nd:	# --------------------------------------------------------------
 .section .data	# --------------------------------------------------------------
 ldrblk:	.long 0					# LBA block of block file
 ramstr:	.string "Not enough memory."		# loader does not fit into RAM
-nrdstr:	.string "No sector readed."		# there was not readed sector
+nrdstr:	.string "No sectors readed."		# there was no readed sector

@@ -3,8 +3,8 @@ OUTPUT_FORMAT(elf32-i386)
 ENTRY(start)
 
 SECTIONS {
-  .text 0x0: {
-    init.o(.text*)
+  .text : {
+    *(.text_init)
     *(.text)
     *(.text.*)
   }

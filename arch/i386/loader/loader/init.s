@@ -12,7 +12,9 @@
 
 .extern bssend
 
-.section .text	# --------------------------------------------------------------
+.section .text_init, "ax", @progbits	# --------------------------------------
+			# init .text section
+
 .globl start
 start:
 	cli					# disable interrupts

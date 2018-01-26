@@ -86,14 +86,14 @@
 .long BSS_END_ADDR				# bss_end_addr
 .long ENTRY_ADDR				# entry_addr
 .byte 'L, 'G, 'O, 'S				# own ext. for real mode entry
-.long start16					# real mode entry address
+.long rmstart					# real mode entry address
 .endif
 
 .section .text16, "ax", @progbits	# --------------------------------------
 			# real mode .text section
 
-.globl start16					# real mode start address
-start16:
+.globl rmstart					# real mode start address
+rmstart:
 	cli					# disable interrupts
 	movb	$0x80, %al			# disable NMI
 	outb	%al, $0x70
