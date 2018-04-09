@@ -1,5 +1,4 @@
 /* LGOS3 loader - ext2 filesystem */
-__asm__ (".code16gcc");				/* compile 16 bit code	*/
 
 #include "ext2.h"
 #include "disk.h"

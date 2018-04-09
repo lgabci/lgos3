@@ -1,0 +1,3 @@
+- bootblock: rewrite from .inc to .s files
+- remove bp from inline asm parameters
+- loader/loader/init.s: get RAM size:  don't do multiply, calculate in KB

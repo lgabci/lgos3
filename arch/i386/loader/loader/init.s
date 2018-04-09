@@ -1,8 +1,8 @@
 # LGOS3 loader, init
+.code16gcc
 .arch i8086
-.code16
 
-.equ STACKSIZE,	0x400			# stack size in bytes (last 4 bits = 0)
+.equ STACKSIZE,	0x200			# stack size in bytes (last 4 bits = 0)
 
 .equ INT_VIDEO, 0x10			# video interrupt
 .equ VID_TELETYPE, 0x0e			# write teletype output
@@ -26,6 +26,7 @@ start:
 	movw	$0x100, %sp
 	sti					# enable interrupts
 
+// don't do multiply, calculate in KB (+ 0x3ff)
 	int	$INT_GETRAMSIZE			# get RAM size in KB
 	movw	$0x400, %bx
 	mulw	%bx

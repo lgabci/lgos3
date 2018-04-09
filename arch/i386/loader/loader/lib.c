@@ -1,5 +1,4 @@
 /* LGOS3 loader - aritmethic library */
-__asm__ (".code16gcc");				/* compile 16 bit code	*/
 
 #include "console.h"
 #include "disk.h"

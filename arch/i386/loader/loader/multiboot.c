@@ -1,5 +1,4 @@
 /* LGOS3 loader - multiboot functions */
-__asm__ (".code16gcc");				/* compile 16 bit code	*/
 
 #include "lib.h"
 #include "disk.h"

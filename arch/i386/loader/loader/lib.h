@@ -42,7 +42,7 @@ struct __attribute__ ((packed)) farptr_s {	/* far pointer seg:off	*/
 };						/* can use for far jump	*/
 typedef struct farptr_s farptr_t;
 
-typedef u32_t size_t;			/* size type			*/
+typedef u32_t size_t;				/* size type		*/
 
 u64_t __udivdi3(u64_t n, u64_t d);	/* 64 bit division algorithms	*/
 u64_t __umoddi3(u64_t n, u64_t d);

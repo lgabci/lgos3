@@ -1,5 +1,5 @@
 # LGOS3 loader boot block for MBR
-.include "ins_init.s"
+.include "init.inc"
 
 .equ PTADDR,	0x1be			# partition table address
 .equ PTENUM,	0x04			# number of partition entries
@@ -75,9 +75,9 @@
 	movb	(%si), %dl		# boot drive (boot status from pt)
 	ljmp	$0, $BIOSSEG << 4	# jump to bootsector
 
-.include "ins_disk.s"
-.include "ins_misc.s"
-.include "ins_video.s"
+.include "disk.inc"
+.include "misc.inc"
+.include "video.inc"
 
 .section .data	# ------------------------------------------------------------
 initstr:    .string "MBR\r\n"

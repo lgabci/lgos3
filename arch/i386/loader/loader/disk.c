@@ -1,5 +1,4 @@
 /* LGOS3 loader - disk functions */
-__asm__ (".code16gcc");				/* compile 16 bit code */
 
 #include "ext2.h"
 #include "fat.h"
@@ -192,7 +191,7 @@ output:	-
 */
 void stopfloppy() {
   __asm__ __volatile__ (
-    "       callw   _stopfloppy		\n"	/* call asm function	*/
+    "       calll   _stopfloppy		\n"	/* call asm function	*/
     :
     :
     : "al", "dx"
@@ -262,7 +261,6 @@ static void initdisk(const char *dev) {
   if (! driveprm.initialized || driveprm.drive != disk) {
     u32_t dummy;
     driveprm.drive = disk;			/* slot for this disk	*/
-
     __asm__ __volatile__  (			/* check BIOS extension	*/
       "       int     %[int_disk]		\n"
       "       movb    $0, %[errflg]		\n"
@@ -322,6 +320,7 @@ static void initdisk(const char *dev) {
       u16_t es;
 
       __asm__ __volatile__ (			/* get drive parameters	*/
+     // mov-ok helyett push/pop-ok?
         "       movw    %%ds, %[ds]	\n"	/* BIOS bug: save DS	*/
         "       movw    %%es, %[es]	\n"	/* save ES		*/
         "       int     %[int_disk]	\n"

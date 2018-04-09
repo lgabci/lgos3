@@ -1,5 +1,4 @@
 /* LGOS3 loader - FAT filesystem */
-__asm__ (".code16gcc");				/* compile 16 bit code	*/
 
 #include "disk.h"
 #include "console.h"

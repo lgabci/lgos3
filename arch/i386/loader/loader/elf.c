@@ -1,5 +1,4 @@
 /* LGOS3 loader - ELF functions */
-__asm__ (".code16gcc");				/* compile 16 bit code */
 
 #include "console.h"
 #include "disk.h"
@@ -478,10 +477,12 @@ void loadprogheaders(Elf64_Off_t phoff, Elf64_Half_t phentsize,
       if (i == 0) {			/* 1st prog header address	*/
         *entry = fp;
       }
-      printf("0x%llx (+ 0x%llx) @ 0x%llx --> 0x%04x:%04x\n", p_filesz,
+      printf("0x%04llx (+ 0x%04llx) @ 0x%04llx --> 0x%04x:%04x\n", p_filesz,
         p_memsz - p_filesz, p_offset, fp.segment, fp.offset);
       readfile_f(p_offset, p_filesz, fp);		/* read segment	*/
-      memset_f(farptradd(fp, p_filesz), 0, p_memsz - p_filesz);
+      if (p_memsz - p_filesz > 0) {
+        memset_f(farptradd(fp, p_filesz), 0, p_memsz - p_filesz);
+      }
       last_top = p_paddr + p_memsz;
     }
     else {

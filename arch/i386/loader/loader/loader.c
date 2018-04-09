@@ -1,5 +1,4 @@
 /* LGOS3 loader */
-__asm__ (".code16gcc");				/* compile 16 bit code	*/
 
 #include "console.h"
 #include "disk.h"
@@ -13,7 +12,7 @@ __asm__ (".code16gcc");				/* compile 16 bit code	*/
 void loadkernel() __attribute__ ((noreturn));	/* load & start kernel	*/
 
 #define CFGLEN	0x100			/* max lenght of cfg path	*/
-static char loadercfgpath[CFGLEN] = "\0 ";	/* cfg path -> .data	*/
+static char ldrcfgpath[CFGLEN] = "\0 ";	/* cfg path -> .data		*/
 
 /* read kernel
 read loader config file (kernel path & parameters)
@@ -30,14 +29,14 @@ void loadkernel() {
   setcolor(CLR_BLUE << 4 | CLR_YELLOW);
   printf("  -= LGOS 3 loader =-  \n");
 
-  if (strlen(loadercfgpath) == 0) {	/* empty cfg file name	*/
+  if (strlen(ldrcfgpath) == 0) {	/* empty cfg file name	*/
     stoperror("Loader config file name is empty.\n");
   }
 
   setcolor(CLR_GREEN);
-  printf("loader config: %s\n", loadercfgpath);
+  printf("loader config: %s\n", ldrcfgpath);
 
-  openfile(loadercfgpath);		/* open config file	*/
+  openfile(ldrcfgpath);			/* open config file	*/
   cfsize = getfilesize();		/* get config file size	*/
   if (cfsize >= MAXCMDLENGTH) {		/* too long?		*/
     stoperror("Kernel command parameter is too long: %lu > %u.",
@@ -72,17 +71,19 @@ void loadkernel() {
       int i;
       int lfsize;
       farptr_t entry;
+      int loaded = 0;
 
       int (*loadfv[])(farptr_t *) = {&loadmb, &loadelf};
 
       lfsize = sizeof(loadfv) / sizeof(loadfv[0]);
       for (i = 0; i < lfsize; i ++) {		/* try file formats	*/
         if ((*loadfv[i])(&entry)) {		/* load kernel		*/
+          loaded = 1;
           break;				/* successful		*/
         }
       }
 
-      if (i >= lfsize) {			/* successful load?	*/
+      if (! loaded) {				/* successful load?	*/
         stoperror("Can not load kernel.");	/* no, stop		*/
       }
 

@@ -95,6 +95,7 @@
 .globl rmstart					# real mode start address
 rmstart:
 	cli					# disable interrupts
+hlt ##
 	movb	$0x80, %al			# disable NMI
 	outb	%al, $0x70
 	inb	$0x71, %al
