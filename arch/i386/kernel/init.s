@@ -15,61 +15,13 @@
 .equ VID_GETMODE, 0X0f				# get video mode and curr page
 .equ COLOR_GRAY, 0x07				# grax color
 
-.equ STACKSIZE, 0x100				# stack size
+.equ STACKSIZE, 0x100				# stack size (last digit = 0)
 
 .equ PG_SIZE, 0x1000				# page size
 
-.equ PG_SH_PD, 0x16				# page dir shift bits
-.equ PG_SH_PT, 0x0c				# page table shift bits
-
-.equ PG_MASK_PD, 0xffc00000			# page dir mask bits
-.equ PG_MASK_PT, 0x003ff000			# page table mask bits
-.equ PG_MASK_PG, 0x00000fff			# page mask bits
-
-.equ PG_FL_P, 0x01				# page present
-.equ PG_FL_NP, 0x00				# page not present
-.equ PG_FL_RW, 0x02				# page read/write
-.equ PG_FL_RO, 0x00				# page read only
-.equ PG_FL_S, 0x00				# page supervisor
-.equ PG_FL_U, 0x04				# page user
-.equ PG_FL_A, 0x20				# page accessed
-.equ PG_FL_D, 0x40				# page dirty
-.equ PG_MASK_AVAIL, 0xe00			# page available bits mask
-
-.equ RMNULLSEL, 0x00				# real mode GDT, null selector
-.equ RMCODESEL, 0x08				# real mode GDT, null selector
-.equ RMDATASEL, 0x10				# real mode GDT, null selector
-
-.extern CP_FROM					# copy from this offset
-.extern CP_TO					# copy to this phys address
-.extern CP_SIZE					# copy this many bytes
-
-.extern PDIR32					# temp page dir address
-.extern PTBL32					# temp page tbl address
-.extern PTBLPG					# temp page tbl address
-
-.extern PG_WX_PHYS				# rw phys addr (text32 - bss32)
-.extern PG_WX_LIN				# rw lin addr
-.extern PG_WX_SIZE				# size in bytes
-
-.extern PG_X_PHYS				# ro phys addr (text)
-.extern PG_X_LIN				# ro lin addr
-.extern PG_X_SIZE				# size in bytes
-
-.extern PG_W_PHYS				# rw phys addr (data - bss)
-.extern PG_W_LIN				# rw lin addr
-.extern PG_W_SIZE				# size in bytes
-
-.extern KERNEL_BOTTOM				# kernel lowest address
-.extern HEADER_ADDR				# mb header address in memory
-.extern LOAD_ADDR				# load file image to this addr
-.extern LOAD_END_ADDR				# end of reading
-.extern BSS_END_ADDR				# end of bss
-.extern ENTRY_ADDR
-
 .extern init					# C initialization code
 
-.section .mbheader, "a", @progbits	# --------------------------------------
+.section .mbheader, "a", @progbits		# ------------------------------
 			# multiboot header section, must be an ALLOC setion,
 			# to put to the beginning of the file and to put to
 			# the binary file (if using binary instead of ELF)
@@ -96,15 +48,13 @@
 rmstart:
 	cli					# disable interrupts
 hlt ##
-	movb	$0x80, %al			# disable NMI
-	outb	%al, $0x70
-	inb	$0x71, %al
 
 	movw	%cs, %ax			# set up segments
 	movw	%ax, %ds
 	movw	%ax, %es
-	movw	%ax, %ss			# set up stack
-	movw	$rmstackend, %sp
+	subw	$STACKSIZE >> 4, %ax		# set up stack
+	movw	%ax, %ss
+	movw	$STACKSIZE, %sp
 
 	movb	$'L, %al			# check data segment
 	movb	$'G, %ah
@@ -292,16 +242,15 @@ checka20:
 	pushw	%ds
 	pushw	%es
 
-	xorw	%ax, %ax		# DS:SI = 0x0000:0200
+	xorw	%ax, %ax		# DS:SI = 0x0000:0500
 	movw	%ax, %ds
-	movw	$0x200, %si
-	decw	%ax			# ES:DI = 0xFFFF:0210
+	movw	$0x500, %si
+	decw	%ax			# ES:DI = 0xFFFF:0510
 	movw	%ax, %es
-	movw	$0x210, %di
+	movw	$0x510, %di
 	movw	%ax, %cx		# CX = 0xFFFF
 
-	movw	(%si), %ax
-	pushw	%ax			# save original value
+	pushw	(%si)			# save original value
 1:
 	incw	%ax			# test A20
 	movw	%ax, %es:(%di)
@@ -349,14 +298,13 @@ jmp 1f
 ## ------------------------------------------------------
 	call	a20on				# switch on gate A20
 
-## check available memory, we need more than 1MB
-
 	movl	%cr0, %eax			# set PE bit in CR0
 	orl	$BIT_PE, %eax
 	movl	%eax, %cr0
 	jmp	1f				# jump after entering prot mode
 1:
 
+.if 0 ##
 	xorl	%eax, %eax
 	movw	%ds, %ax
 	shll	$4, %eax
@@ -398,6 +346,7 @@ addr32 rep	movsb
 	inb	$0x71, %al
 	sti					# enable interrupts
 ## -----------------------------------------------------------------------------
+.endif ##
 
 .Lnorm:						# CPU not in real mode
 	movw	$strnorm86, %si			# write CPU is not in real mode
@@ -412,26 +361,9 @@ lgmag:		.byte 'L, 'G, 'D, 'S	# magic value of data segment
 strno386:	.string "LGOS requires 80386 or better CPU."
 strnorm86:	.string "LGOS requires CPU to be in real mode."
 
-.balign 8				# align GDT
-rmgdt:					# real mode GDT
-.org rmgdt + RMNULLSEL
-		.quad 0x0000000000000000	# null selector
-.org rmgdt + RMCODESEL
-		.quad 0x00cf9a000000ffff	# code selector
-.org rmgdt + RMDATASEL
-		.quad 0x00cf92000000ffff	# data selector
-rmgdtend:				# end of real mode GDT
-
-.balign 8				# align GDTR
-rmgdtr:					# GDT register
-rmgdtr_limit:	.hword rmgdtend - rmgdt - 1
-rmgdtr_base:	.long rmgdt
-
-.balign 2				# align stack to word boundary
-rmstack:	.skip STACKSIZE		# real mode stack
-rmstackend:
 rmvidpage:	.skip 1			# real mode video page
 
+.if 0 ##
 .section .text32, "ax", @progbits	# --------------------------------------
 			# protected mode .text section
 .arch i386
@@ -439,115 +371,13 @@ rmvidpage:	.skip 1			# real mode video page
 .globl start32
 start32:					# called from grub
 	cli					# disable interrupts
-	movb	$0x80, %al			# disable NMI
-	outb	%al, $0x70
-	inb	$0x71, %al
+hlt ##
 
-	movl	$PDIR32, %edi			# set up paging, clear pdir
-	movl	$PG_SIZE >> 2, %ecx
-	xorl	%eax, %eax
-	cld
-rep	stosl
 
-	movl	$PTBL32, %edi			# clear ptable for 1MB
-	movl	$PG_SIZE >> 2, %ecx
-	xorl	%eax, %eax
-	cld
-rep	stosl
 
-	movl	$PTBLPG, %edi			# clear ptable for kernel
-	movl	$PG_SIZE >> 2, %ecx
-	xorl	%eax, %eax
-	cld
-rep	stosl
-
-	movl	$PDIR32, %ebx		# ------- fill page directory
-
-	movl	$PG_WX_LIN, %esi		# PD entry address -> ESI
-	shrl	$PG_SH_PD, %esi
-	movl	$PTBL32, %eax			# page table address -> EAX
-	orl	$PG_FL_P | PG_FL_RW | PG_FL_S, %eax
-	movl	%eax, (%ebx, %esi, 4)
-
-	movl	$PG_X_LIN, %esi			# PD entry address -> ESI
-	shrl	$PG_SH_PD, %esi
-	movl	$PTBLPG, %eax			# page table address -> EAX
-	orl	$PG_FL_P | PG_FL_RW | PG_FL_S, %eax
-	movl	%eax, (%ebx, %esi, 4)
-
-	movl	$PG_WX_LIN, %edi	# ------- page entry address -> EDI
-	andl	$PG_MASK_PT, %edi
-	shrl	$PG_SH_PT - 2, %edi		# -2: 4 byte long entries
-	addl	$PTBL32, %edi
-
-	movl	$PG_WX_SIZE, %ecx		# count -> ECX
-	jecxz	2f				# if ECX = 0 then nothing to do
-	addl	$1 << PG_SH_PT - 1, %ecx
-	shrl	$PG_SH_PT, %ecx
-
-	movl	$PG_WX_PHYS, %eax		# physical address -> EAX
-	orl	$PG_FL_P | PG_FL_RW | PG_FL_S, %eax
-	cld
-1:
-	stosl					# fill page table
-	addl	$PG_SIZE, %eax
-	loop	1b
-2:
-
-	movl	$PG_X_LIN, %edi		# ------- page entry address -> EDI
-	andl	$PG_MASK_PT, %edi
-	shrl	$PG_SH_PT - 2, %edi		# -2: 4 byte long entries
-	addl	$PTBLPG, %edi
-
-	movl	$PG_X_SIZE, %ecx		# count -> ECX
-	jecxz	2f				# if ECX = 0 then nothing to do
-	addl	$1 << PG_SH_PT - 1, %ecx
-	shrl	$PG_SH_PT, %ecx
-
-	movl	$PG_X_PHYS, %eax		# physical address -> EAX
-	orl	$PG_FL_P | PG_FL_RO | PG_FL_S, %eax
-	cld
-1:
-	stosl					# fill page table
-	addl	$PG_SIZE, %eax
-	loop	1b
-2:
-
-	movl	$PG_W_LIN, %edi		# ------- page entry address -> EDI
-	andl	$PG_MASK_PT, %edi
-	shrl	$PG_SH_PT - 2, %edi		# -2: 4 byte long entries
-	addl	$PTBLPG, %edi
-
-	movl	$PG_W_SIZE, %ecx		# count -> ECX
-	jecxz	2f				# if ECX = 0 then nothing to do
-	addl	$1 << PG_SH_PT - 1, %ecx
-	shrl	$PG_SH_PT, %ecx
-
-	movl	$PG_W_PHYS, %eax		# physical address -> EAX
-	orl	$PG_FL_P | PG_FL_RW | PG_FL_S, %eax
-	cld
-1:
-	stosl					# fill page table
-	addl	$PG_SIZE, %eax
-	loop	1b
-2:
-
-	movl	$PDIR32, %eax		# ------- set PDBR
-	movl	%eax, %cr3
-
-	movl	%cr0, %eax			# enable paging
-	orl	$BIT_PG,%eax
-	movl	%eax, %cr0
 
 	jmp	init				# C init function
 
 .section .data32, "aw", @progbits	# --------------------------------------
 			# protected mode .data section
-.balign 4				# align stack to dword boundary
-pmstack:	.skip STACKSIZE		# protected mode stack
-pmstackend:
-
-## ----------------------------------------------------------------------------
-.data
-.byte 0
-## ----------------------------------------------------------------------------
+.endif ##
