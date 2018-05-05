@@ -11,12 +11,14 @@ SECTIONS {
   }
 
 			/* real mode text			*/
-  .text16 ADDR(.mbheader) + SIZEOF(.mbheader) : {
+/*  .text16 ADDR(.mbheader) + SIZEOF(.mbheader) : {*/
+  .text16 : {
     *(.text16)
   }
 
 			/* real mode data			*/
-  .data16 ADDR(.text16) + SIZEOF(.text16) : {
+/*  .data16 ADDR(.text16) + SIZEOF(.text16) : {*/
+  .data16 : {
     *(.data16)
   }
 
@@ -36,13 +38,15 @@ SECTIONS {
   }
 
 	/* unpaged code + data: phys addr, lin addr, size, pages	*/
-  .text KERNEL_BOTTOM :	/* protected mode code @ KERNEL_BOTTOM	*/
-    AT ((ADDR(.data32) + SIZEOF(.data32) + 0x1000 - 1) & ~ (0x1000 - 1)) {
+/*  .text KERNEL_BOTTOM :*/	/* protected mode code @ KERNEL_BOTTOM	*/
+/*    AT ((ADDR(.data32) + SIZEOF(.data32) + 0x1000 - 1) & ~ (0x1000 - 1)) { */
+  .text KERNEL_BOTTOM : {
     *(.text)
   }
 
 			/* protected mode data @ KERNEL_BOTTOM	*/
-  .data (ADDR(.text) + SIZEOF(.text) + 0x1000 - 1) & ~ (0x1000 - 1) : {
+/*  .data (ADDR(.text) + SIZEOF(.text) + 0x1000 - 1) & ~ (0x1000 - 1) : {*/
+  .data : {
     *(.data)
     *(.rodata)
     *(.rodata*)

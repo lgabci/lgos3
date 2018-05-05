@@ -131,6 +131,9 @@ int loadmb(farptr_t *entry) {
   readfile_f(readoffs, readsize, fp);			/* load kernel	*/
   memset_f(farptradd(fp, readsize), 0, bsssize);	/* clear BSS	*/
 
+  if (fp.offset + mb.own.real_entry > 0xffff) {
+    stoperror("Real mode entry point over 64K limit.");
+  }
   fp.offset = fp.offset + mb.own.real_entry;
 
   *entry = fp;

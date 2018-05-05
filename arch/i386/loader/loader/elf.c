@@ -745,7 +745,15 @@ int loadelf(farptr_t *entry) {
   }
 
   loadprogheaders(phoff, phentsize, phnum, entry);
-  *entry = farptradd(*entry, getrmentry(shoff, shentsize, shnum));
+  //  *entry = farptradd(*entry, getrmentry(shoff, shentsize, shnum));
+  {
+    u32_t i;
+    i = entry->offset + getrmentry(shoff, shentsize, shnum);
+    if (i > 0xffff) {
+      stoperror("Real mode entry point over 64K limit.");
+    }
+    entry->offset = i;
+  }
 
   return 1;					/* successful	*/
 }

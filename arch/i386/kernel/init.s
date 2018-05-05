@@ -4,8 +4,8 @@
 
 .include "multiboot.inc"			# multiboot constants
 
-##.equ MBFLAGS, 0x00010000
-.equ MBFLAGS, 0x00000000
+.equ MBFLAGS, 0x00010000
+##.equ MBFLAGS, 0x00000000
 
 .equ BIT_PE, 0x00000001				# CR0, Protetion Enable bit
 .equ BIT_PG, 0x80000000				# CR0, Paging bit
@@ -47,7 +47,6 @@
 .globl rmstart					# real mode start address
 rmstart:
 	cli					# disable interrupts
-hlt ##
 
 	movw	%cs, %ax			# set up segments
 	movw	%ax, %ds
@@ -73,6 +72,7 @@ addrtest:					# stack is OK now
 
 	call	rmgetvidmode			# get current video page
 	movb	%bh, rmvidpage
+hlt ##
 
 	pushfw					# check 80386 CPU
 	popw	%ax				# get FLAGS
@@ -363,7 +363,6 @@ strnorm86:	.string "LGOS requires CPU to be in real mode."
 
 rmvidpage:	.skip 1			# real mode video page
 
-.if 0 ##
 .section .text32, "ax", @progbits	# --------------------------------------
 			# protected mode .text section
 .arch i386
@@ -371,6 +370,7 @@ rmvidpage:	.skip 1			# real mode video page
 .globl start32
 start32:					# called from grub
 	cli					# disable interrupts
+	movl	0x12345678, %eax ##
 hlt ##
 
 
@@ -380,4 +380,3 @@ hlt ##
 
 .section .data32, "aw", @progbits	# --------------------------------------
 			# protected mode .data section
-.endif ##
