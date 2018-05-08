@@ -1,13 +1,20 @@
 # LGOS3 emulator makefile, pre-dependencies
 
 TARGETS += emulator/qemu emulator/debug emulator/qemu_img_hdd_ldr_ext2.img
+TARGETS += emulator/qemu2 emulator/qemu_img_hdd_grub_ext2.img
 
 .PHONY: emulator/qemu_img_hdd_ldr_ext2.img
 emulator/qemu_img_hdd_ldr_ext2.img: kernel/kernel.elf loader/loader/loader.bin \
 loader/bootblock/bootblock_mbr.elf loader/bootblock/bootblock_ext2.elf
 
+.PHONY: emulator/qemu_img_hdd_grub_ext2.img
+emulator/qemu_img_hdd_grub_ext2.img: kernel/kernel.elf
+
 .PHONY: emulator/qemu
 emulator/qemu: emulator/qemu_img_hdd_ldr_ext2.img
+
+.PHONY: emulator/qemu2
+emulator/qemu2: emulator/qemu_img_hdd_grub_ext2.img
 
 .PHONY: emulator/debug
 emulator/debug: emulator/qemu_img_hdd_ldr_ext2.img

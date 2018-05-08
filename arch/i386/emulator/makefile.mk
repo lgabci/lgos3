@@ -136,9 +136,30 @@ printf "%s\0" "hda1:/loader/loader.cfg" | \
 	sudo umount $@.mnt
 	sudo losetup -d $(LOOPDEV)
 
+qemu_img_hdd_grub_ext2.img: ../kernel/kernel.elf
+	rm -f $@
+	$(call dd,/dev/zero,$@,1,,$(HDSIZE),0,)
+	$(call dd,$(SRCDIR)/mbr_hdd,$@,,,,,notrunc)
+	sudo losetup -o $(HDPSTART) --sizelimit $(HDPSIZE) $(LOOPDEV) $@
+	sudo mkfs.ext2 $(LOOPDEV)
+	mkdir -p $@.mnt
+	sudo mount $(LOOPDEV) $@.mnt
+	sudo chmod 777 $@.mnt
+	mkdir -p $@.mnt/loader $@.mnt/kernel
+	cp ../kernel/kernel.elf $@.mnt/kernel/
+	###
+	echo "hda1:/kernel/kernel.elf proba params x" >$@.mnt/loader/loader.cfg
+	###
+	sudo umount $@.mnt
+	sudo losetup -d $(LOOPDEV)
+
 .PHONY: qemu
 qemu: qemu_img_hdd_ldr_ext2.img
 	$(QEMU) $(QEMUFLAGS)
+
+.PHONY: qemu2
+qemu2: qemu_img_hdd_grub_ext2.img
+	$(QEMU) $(QEMUFLAGS2)
 
 .PHONY: debug
 debug: qemu_img_hdd_ldr_ext2.img

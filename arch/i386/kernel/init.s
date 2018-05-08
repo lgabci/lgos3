@@ -4,8 +4,8 @@
 
 .include "multiboot.inc"			# multiboot constants
 
-.equ MBFLAGS, 0x00010000
-##.equ MBFLAGS, 0x00000000
+##.equ MBFLAGS, 0x00010000
+.equ MBFLAGS, 0x00000000
 
 .equ BIT_PE, 0x00000001				# CR0, Protetion Enable bit
 .equ BIT_PG, 0x80000000				# CR0, Paging bit
@@ -13,7 +13,7 @@
 .equ INT_VIDEO, 0x10				# video interrupt
 .equ VID_TTYOUT, 0x0e				# teletype output
 .equ VID_GETMODE, 0X0f				# get video mode and curr page
-.equ COLOR_GRAY, 0x07				# grax color
+.equ COLOR_GRAY, 0x07				# gray color
 
 .equ STACKSIZE, 0x100				# stack size (last digit = 0)
 
