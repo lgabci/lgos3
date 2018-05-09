@@ -24,7 +24,7 @@ QEMUDPAR = cyls=$(HDCYLS),heads=$(HDHEADS),secs=$(HDSECS),format=raw
 QEMU := qemu-system-i386
 QEMUFLAGS = -m 2 $(QEMUDISK),$(QEMUDPAR) -boot order=c -net none
 
-QEMUFLOPPY = -fda $(SRCDIR)/grub.flp
+QEMUFLOPPY = -fda $(SRCDIR)/grub.img
 QEMUFLAGS2 = -m 2 $(QEMUDISK),$(QEMUDPAR) $(QEMUFLOPPY) -boot order=a -net none
 
 QEMUDBFLAGS := -s -S
