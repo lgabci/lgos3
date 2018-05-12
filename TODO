@@ -1,1 +1,2 @@
 - remove bp from inline asm parameters
+- Elf loader: load at paddr address

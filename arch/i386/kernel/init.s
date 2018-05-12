@@ -21,11 +21,17 @@
 
 .extern init					# C initialization code
 
-.section .mbheader, "a", @progbits		# ------------------------------
-			# multiboot header section, must be an ALLOC setion,
-			# to put to the beginning of the file and to put to
-			# the binary file (if using binary instead of ELF)
+.section .text16, "ax", @progbits	# --------------------------------------
+			# real mode .text section
+
+.globl rmstart
+rmstart:					# real mode start address
+	cli					# disable interrupts
+	jmp	1f
+
 .balign 4					# align mb header to dword
+.globl mbheader
+mbheader:					# multiboot header
 
 .long MBMAGIC					# multiboot header, magic value
 .long MBFLAGS					# multiboot loader flags
@@ -41,13 +47,7 @@
 .long rmstart					# real mode entry address
 .endif
 
-.section .text16, "ax", @progbits	# --------------------------------------
-			# real mode .text section
-
-.globl rmstart					# real mode start address
-rmstart:
-	cli					# disable interrupts
-
+1:
 	movw	%cs, %ax			# set up segments
 	movw	%ax, %ds
 	movw	%ax, %es
@@ -72,6 +72,7 @@ addrtest:					# stack is OK now
 
 	call	rmgetvidmode			# get current video page
 	movb	%bh, rmvidpage
+movw $0xabcd, %ax ##
 hlt ##
 
 	pushfw					# check 80386 CPU
@@ -117,9 +118,6 @@ ldrmess:					# data segment missing
 	addw	$0x1000, %ax
 	movw	%ax, %ss
 
-	movb	$0x00, %al			# enable NMI
-	outb	%al, $0x70
-	inb	$0x71, %al
 	sti					# enable interrupts
 
 	call	rmgetvidmode			# get current video page
@@ -340,12 +338,7 @@ addr32 rep	movsb
 
 	ljmpl	$RMCODESEL, $start32		# jump to PM code
 
-## -----------------------------------------------------------------------------
-	movb	$0x00, %al			# enable NMI
-	outb	%al, $0x70
-	inb	$0x71, %al
 	sti					# enable interrupts
-## -----------------------------------------------------------------------------
 .endif ##
 
 .Lnorm:						# CPU not in real mode
@@ -370,13 +363,10 @@ rmvidpage:	.skip 1			# real mode video page
 .globl start32
 start32:					# called from grub
 	cli					# disable interrupts
-	movl	0x12345678, %eax ##
+	movl	$0x12345678, %eax ##
 hlt ##
 
 
 
 
 	jmp	init				# C init function
-
-.section .data32, "aw", @progbits	# --------------------------------------
-			# protected mode .data section

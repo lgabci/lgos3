@@ -2,59 +2,53 @@ OUTPUT_ARCH(i386)
 OUTPUT_FORMAT(elf32-i386)
 ENTRY(start32)
 
-LOAD_ADDR = 0x100000;
 KERNEL_BOTTOM = 0xc0000000;
 
-SECTIONS {
-  .mbheader 0x0 : AT (LOAD_ADDR) {
-    *(.mbheader)
-  }
+HEADER_ADDR = LOAD_ADDR + mbheader;
+LOAD_ADDR = 0x100000;
+LOAD_END_ADDR = LOAD_ADDR + dataend - KERNEL_BOTTOM;
+BSS_END_ADDR = LOAD_ADDR + bssend - KERNEL_BOTTOM;
+ENTRY_ADDR = start32;
 
+SECTIONS {
 			/* real mode text			*/
-/*  .text16 ADDR(.mbheader) + SIZEOF(.mbheader) : {*/
-  .text16 : {
+  .text16 0 : AT (LOAD_ADDR) {
     *(.text16)
   }
 
 			/* real mode data			*/
-/*  .data16 ADDR(.text16) + SIZEOF(.text16) : {*/
   .data16 : {
     *(.data16)
   }
+  d16end = . + 0x1000;
 
-			/* protected mode code @ 1MB		*/
-/*  .text32 (LOAD_ADDR + ADDR(.data16) + SIZEOF(.data16) + 0x1000 - 1) & ~ (0x1000 - 1) :
-    AT ((LOADADDR(.data16) + SIZEOF(.data16) + 0x1000 - 1) & ~ (0x1000 - 1)) {
-*/
-  .text32 : {
+			/* protected mode code @ 1MB, non paged	*/
+  .text32 LOAD_ADDR + d16end : AT (LOAD_ADDR + d16end) {
     *(.text32)
   }
 
-			/* protected mode data @ 1MB		*/
-/*  .data32 ADDR(.text32) + SIZEOF(.text32) : {
-*/
+			/* protected mode data @ 1MB, non paged */
   .data32 : {
     *(.data32)
   }
+  d32end = .;
 
-	/* unpaged code + data: phys addr, lin addr, size, pages	*/
-/*  .text KERNEL_BOTTOM :*/	/* protected mode code @ KERNEL_BOTTOM	*/
-/*    AT ((ADDR(.data32) + SIZEOF(.data32) + 0x1000 - 1) & ~ (0x1000 - 1)) { */
-  .text KERNEL_BOTTOM : {
+			/* protected mode code @ KERNEL_BOTTOM	*/
+  .text KERNEL_BOTTOM - LOAD_ADDR + d32end : AT (d32end) {
     *(.text)
   }
 
 			/* protected mode data @ KERNEL_BOTTOM	*/
-/*  .data (ADDR(.text) + SIZEOF(.text) + 0x1000 - 1) & ~ (0x1000 - 1) : {*/
   .data : {
     *(.data)
     *(.rodata)
     *(.rodata*)
   }
-
+  dataend = .;
 			/* protected mode data @ KERNEL_BOTTOM	*/
-  .bss ADDR(.data) + SIZEOF(.data) : {
+  .bss : {
     *(.bss)
     *(COMMON)
   }
+  bssend = .;
 }

@@ -147,9 +147,6 @@ qemu_img_hdd_grub_ext2.img: ../kernel/kernel.elf
 	sudo chmod 777 $@.mnt
 	mkdir -p $@.mnt/loader $@.mnt/kernel
 	cp ../kernel/kernel.elf $@.mnt/kernel/
-	###
-	echo "hda1:/kernel/kernel.elf proba params x" >$@.mnt/loader/loader.cfg
-	###
 	sudo umount $@.mnt
 	sudo losetup -d $(LOOPDEV)
 
