@@ -30,18 +30,26 @@ endfunction()
 
 AssureOutOfSourceBuilds()
 
-project(lgos3 C)
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/lgos3-CMakeFiles")
 
 set(CMAKE_SYSTEM_NAME lgos3)
+
 set(CMAKE_SYSTEM_VERSION 0.0.1)
-
 set(CMAKE_SYSTEM_PROCESSOR i386)
-set(CMAKE_CROSSCOMPILING 1)
+#set(CMAKE_CROSSCOMPILING 1)
 
-set(CMAKE_C_COMPILER "i386-elf-gcc")
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -ffreestanding -nostdinc -O2 -pedantic -Werror -Wall -Wextra")
+message(STATUS "1")
+set(CMAKE_C_COMPILER "i686-elf-gcc")
+message(STATUS "2")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -ffreestanding -nostdlib -nostdinc -O2 -pedantic -Werror -Wall -Wextra")
+#set(CMAKE_C_COMPILER_WORKS 1)
 
 
 
-add_executable(kernel.elf "")
+message(STATUS "3")
+project(lgos3 C)
+message(STATUS "4")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -ffreestanding -nostdlib -nostdinc -O2 -pedantic -Werror -Wall -Wextra")
+
+#add_executable(kernel.elf "")
 add_subdirectory(arch/i386/kernel)
