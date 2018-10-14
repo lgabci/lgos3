@@ -24,5 +24,7 @@ AM_PROG_AS
 #AC_CHECK_FUNCS([memset strchr])
 
 AC_CONFIG_FILES([Makefile
-                 arch/i386/kernel/Makefile])
+                 arch/i386/kernel/Makefile
+		 arch/i386/loader/Makefile
+		 arch/i386/loader/loader/Makefile])
 AC_OUTPUT
