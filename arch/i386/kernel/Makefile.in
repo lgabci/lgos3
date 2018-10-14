@@ -103,6 +103,8 @@ am_kernel_elf_OBJECTS = init.$(OBJEXT) initc.$(OBJEXT) \
 	descript.$(OBJEXT) paging.$(OBJEXT)
 kernel_elf_OBJECTS = $(am_kernel_elf_OBJECTS)
 kernel_elf_LDADD = $(LDADD)
+kernel_elf_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(kernel_elf_LDFLAGS) \
+	$(LDFLAGS) -o $@
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
 am__v_P_0 = false
@@ -252,7 +254,8 @@ target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-kernel_elf_SOURCES = init.s initc.c descript.c paging.c multiboot.inc descript.h paging.h types.h
+kernel_elf_SOURCES = init.s initc.c descript.c paging.c
+kernel_elf_LDFLAGS = -T $(srcdir)/kernel.ld
 all: all-am
 
 .SUFFIXES:
@@ -331,7 +334,7 @@ clean-binPROGRAMS:
 
 kernel.elf$(EXEEXT): $(kernel_elf_OBJECTS) $(kernel_elf_DEPENDENCIES) $(EXTRA_kernel_elf_DEPENDENCIES) 
 	@rm -f kernel.elf$(EXEEXT)
-	$(AM_V_CCLD)$(LINK) $(kernel_elf_OBJECTS) $(kernel_elf_LDADD) $(LIBS)
+	$(AM_V_CCLD)$(kernel_elf_LINK) $(kernel_elf_OBJECTS) $(kernel_elf_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)

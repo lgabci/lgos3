@@ -1,1 +1,1 @@
-SUBDIRS = arch/i386/kernel
+SUBDIRS = arch/i386/kernel arch/i386/loader

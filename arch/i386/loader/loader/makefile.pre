@@ -1,3 +1,0 @@
-# LGOS3 loader makefile, pre-dependencies
-
-TARGETS += loader/loader/loader.bin

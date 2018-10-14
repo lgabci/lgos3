@@ -41,7 +41,7 @@ SECTIONS {
 			/* protected mode data @ 1MB		*/
 /*  .data32 ADDR(.text32) + SIZEOF(.text32) : {
 */
-  .data32 : {
+  .data32 ALIGN(0x1000) : {
     *(.data32)
   }
 
@@ -52,14 +52,16 @@ SECTIONS {
   }
 
 			/* protected mode data @ KERNEL_BOTTOM	*/
-  .data (ADDR(.text) + SIZEOF(.text) + 0x1000 - 1) & ~ (0x1000 - 1) : {
+/*  .data (ADDR(.text) + SIZEOF(.text) + 0x1000 - 1) & ~ (0x1000 - 1) : {*/
+  .data : {
     *(.data)
     *(.rodata)
     *(.rodata*)
   }
 
 			/* protected mode data @ KERNEL_BOTTOM	*/
-  .bss ADDR(.data) + SIZEOF(.data) : {
+/*  .bss ADDR(.data) + SIZEOF(.data) : {*/
+  .bss : {
     *(.bss)
     *(COMMON)
   }

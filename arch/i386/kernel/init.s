@@ -2,7 +2,9 @@
 .arch i8086
 .code16
 
-.include "multiboot.inc"			# multiboot constants
+# Multiboot constants
+.equ LDRMAGIC, 0x2badb002			# loader magic number
+.equ MBMAGIC, 0x1badb002			# multiboot magic number
 
 ##.equ MBFLAGS, 0x00010000
 .equ MBFLAGS, 0x00000000

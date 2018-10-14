@@ -287,7 +287,7 @@ target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-SUBDIRS = arch/i386/kernel
+SUBDIRS = arch/i386/kernel arch/i386/loader
 all: config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-recursive
 
