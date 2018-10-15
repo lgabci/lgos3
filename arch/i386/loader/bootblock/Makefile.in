@@ -86,8 +86,9 @@ POST_INSTALL = :
 NORMAL_UNINSTALL = :
 PRE_UNINSTALL = :
 POST_UNINSTALL = :
-bin_PROGRAMS = loader.elf$(EXEEXT)
-subdir = arch/i386/loader/loader
+bin_PROGRAMS = bootblock_mbr.elf$(EXEEXT) bootblock_ext2.elf$(EXEEXT) \
+	bootblock_fat.elf$(EXEEXT)
+subdir = arch/i386/loader/bootblock
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
@@ -99,13 +100,21 @@ CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)"
 PROGRAMS = $(bin_PROGRAMS)
-am_loader_elf_OBJECTS = init.$(OBJEXT) console.$(OBJEXT) \
-	disk.$(OBJEXT) elf.$(OBJEXT) ext2.$(OBJEXT) fat.$(OBJEXT) \
-	lib.$(OBJEXT) loader.$(OBJEXT) multiboot.$(OBJEXT)
-loader_elf_OBJECTS = $(am_loader_elf_OBJECTS)
-loader_elf_LDADD = $(LDADD)
-loader_elf_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(loader_elf_LDFLAGS) \
-	$(LDFLAGS) -o $@
+bootblock_ext2_elf_SOURCES = bootblock_ext2.c
+bootblock_ext2_elf_OBJECTS = bootblock_ext2.$(OBJEXT)
+bootblock_ext2_elf_LDADD = $(LDADD)
+bootblock_ext2_elf_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
+	$(bootblock_ext2_elf_LDFLAGS) $(LDFLAGS) -o $@
+bootblock_fat_elf_SOURCES = bootblock_fat.c
+bootblock_fat_elf_OBJECTS = bootblock_fat.$(OBJEXT)
+bootblock_fat_elf_LDADD = $(LDADD)
+bootblock_fat_elf_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
+	$(bootblock_fat_elf_LDFLAGS) $(LDFLAGS) -o $@
+bootblock_mbr_elf_SOURCES = bootblock_mbr.c
+bootblock_mbr_elf_OBJECTS = bootblock_mbr.$(OBJEXT)
+bootblock_mbr_elf_LDADD = $(LDADD)
+bootblock_mbr_elf_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
+	$(bootblock_mbr_elf_LDFLAGS) $(LDFLAGS) -o $@
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
 am__v_P_0 = false
@@ -134,13 +143,8 @@ AM_V_CCLD = $(am__v_CCLD_@AM_V@)
 am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
 am__v_CCLD_0 = @echo "  CCLD    " $@;
 am__v_CCLD_1 = 
-CCASCOMPILE = $(CCAS) $(AM_CCASFLAGS) $(CCASFLAGS)
-AM_V_CCAS = $(am__v_CCAS_@AM_V@)
-am__v_CCAS_ = $(am__v_CCAS_@AM_DEFAULT_V@)
-am__v_CCAS_0 = @echo "  CCAS    " $@;
-am__v_CCAS_1 = 
-SOURCES = $(loader_elf_SOURCES)
-DIST_SOURCES = $(loader_elf_SOURCES)
+SOURCES = bootblock_ext2.c bootblock_fat.c bootblock_mbr.c
+DIST_SOURCES = bootblock_ext2.c bootblock_fat.c bootblock_mbr.c
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -256,12 +260,13 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 AM_CFLAGS = -ffreestanding -nostdinc -pedantic -Werror -Wall -Wextra -m16
-loader_elf_SOURCES = init.s console.c disk.c elf.c ext2.c fat.c lib.c loader.c multiboot.c
-loader_elf_LDFLAGS = -T $(srcdir)/loader.ld
+bootblock_mbr_elf_LDFLAGS = -T $(srcdir)/bootblock_mbr_elf.ld
+bootblock_ext2_elf_LDFLAGS = -T $(srcdir)/bootblock_ext2.ld
+bootblock_fat_elf_LDFLAGS = -T $(srcdir)/bootblock_fat.ld
 all: all-am
 
 .SUFFIXES:
-.SUFFIXES: .c .o .obj .s
+.SUFFIXES: .c .o .obj
 $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
 	@for dep in $?; do \
 	  case '$(am__configure_deps)' in \
@@ -271,9 +276,9 @@ $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign arch/i386/loader/loader/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign arch/i386/loader/bootblock/Makefile'; \
 	$(am__cd) $(top_srcdir) && \
-	  $(AUTOMAKE) --foreign arch/i386/loader/loader/Makefile
+	  $(AUTOMAKE) --foreign arch/i386/loader/bootblock/Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
 	  *config.status*) \
@@ -334,9 +339,17 @@ uninstall-binPROGRAMS:
 clean-binPROGRAMS:
 	-test -z "$(bin_PROGRAMS)" || rm -f $(bin_PROGRAMS)
 
-loader.elf$(EXEEXT): $(loader_elf_OBJECTS) $(loader_elf_DEPENDENCIES) $(EXTRA_loader_elf_DEPENDENCIES) 
-	@rm -f loader.elf$(EXEEXT)
-	$(AM_V_CCLD)$(loader_elf_LINK) $(loader_elf_OBJECTS) $(loader_elf_LDADD) $(LIBS)
+bootblock_ext2.elf$(EXEEXT): $(bootblock_ext2_elf_OBJECTS) $(bootblock_ext2_elf_DEPENDENCIES) $(EXTRA_bootblock_ext2_elf_DEPENDENCIES) 
+	@rm -f bootblock_ext2.elf$(EXEEXT)
+	$(AM_V_CCLD)$(bootblock_ext2_elf_LINK) $(bootblock_ext2_elf_OBJECTS) $(bootblock_ext2_elf_LDADD) $(LIBS)
+
+bootblock_fat.elf$(EXEEXT): $(bootblock_fat_elf_OBJECTS) $(bootblock_fat_elf_DEPENDENCIES) $(EXTRA_bootblock_fat_elf_DEPENDENCIES) 
+	@rm -f bootblock_fat.elf$(EXEEXT)
+	$(AM_V_CCLD)$(bootblock_fat_elf_LINK) $(bootblock_fat_elf_OBJECTS) $(bootblock_fat_elf_LDADD) $(LIBS)
+
+bootblock_mbr.elf$(EXEEXT): $(bootblock_mbr_elf_OBJECTS) $(bootblock_mbr_elf_DEPENDENCIES) $(EXTRA_bootblock_mbr_elf_DEPENDENCIES) 
+	@rm -f bootblock_mbr.elf$(EXEEXT)
+	$(AM_V_CCLD)$(bootblock_mbr_elf_LINK) $(bootblock_mbr_elf_OBJECTS) $(bootblock_mbr_elf_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -344,14 +357,9 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/console.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/disk.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/elf.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ext2.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fat.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/lib.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/loader.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/multiboot.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bootblock_ext2.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bootblock_fat.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bootblock_mbr.Po@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
@@ -366,12 +374,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(COMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
-
-.s.o:
-	$(AM_V_CCAS)$(CCASCOMPILE) -c -o $@ $<
-
-.s.obj:
-	$(AM_V_CCAS)$(CCASCOMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
 
 ID: $(am__tagged_files)
 	$(am__define_uniq_tagged_files); mkid -fID $$unique
@@ -579,6 +581,12 @@ uninstall-am: uninstall-binPROGRAMS
 
 .PRECIOUS: Makefile
 
+
+bootblock_mbr_elf_SOURCES: bootblock_mbr.s init.inc disk.inc misc.inc video.inc
+
+bootblock_ext2_elf_SOURCES: bootblock_ext2.s init.inc disk.inc misc.inc video.inc load.inc
+
+bootblock_fat_elf_SOURCES: bootblock_fat.s init.inc disk.inc misc.inc video.inc load.inc
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

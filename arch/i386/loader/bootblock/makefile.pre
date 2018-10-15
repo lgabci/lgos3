@@ -1,5 +1,0 @@
-# LGOS3 bootblock makefile, pre-dependencies
-
-TARGETS += loader/bootblock/bootblock_mbr.elf
-TARGETS += loader/bootblock/bootblock_ext2.elf
-TARGETS += loader/bootblock/bootblock_fat.elf
