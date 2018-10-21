@@ -586,6 +586,7 @@ ac_subst_vars='am__EXEEXT_FALSE
 am__EXEEXT_TRUE
 LTLIBOBJS
 LIBOBJS
+AM_CFLAGS
 am__fastdepCCAS_FALSE
 am__fastdepCCAS_TRUE
 CCASDEPMODE
@@ -3587,6 +3588,9 @@ else
   am__fastdepCCAS_FALSE=
 fi
 
+
+
+AM_CFLAGS="-ffreestanding -nostdinc -pedantic"
 
 
 # Checks for libraries.

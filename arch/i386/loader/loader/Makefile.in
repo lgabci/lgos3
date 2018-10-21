@@ -169,6 +169,7 @@ am__DIST_COMMON = $(srcdir)/Makefile.in $(top_srcdir)/depcomp
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 ACLOCAL = @ACLOCAL@
 AMTAR = @AMTAR@
+AM_CFLAGS = @AM_CFLAGS@ -m16
 AM_DEFAULT_VERBOSITY = @AM_DEFAULT_VERBOSITY@
 AUTOCONF = @AUTOCONF@
 AUTOHEADER = @AUTOHEADER@
@@ -255,7 +256,6 @@ target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-AM_CFLAGS = -ffreestanding -nostdinc -pedantic -Werror -Wall -Wextra -m16
 loader_elf_SOURCES = init.s console.c disk.c elf.c ext2.c fat.c lib.c loader.c multiboot.c
 loader_elf_LDFLAGS = -T $(srcdir)/loader.ld
 all: all-am

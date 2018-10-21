@@ -1,5 +1,5 @@
-AM_CFLAGS = -ffreestanding -nostdinc -pedantic -Werror -Wall -Wextra -m16
-AM_CCASFLAGS = -I$(srcdir)
+AM_CFLAGS += -m16
+AM_CCASFLAGS = -I $(srcdir)
 
 bin_PROGRAMS = bootblock_mbr.elf bootblock_ext2.elf bootblock_fat.elf
 

@@ -1,4 +1,4 @@
-AM_CFLAGS = -ffreestanding -nostdinc -pedantic -Werror -Wall -Wextra -m16
+AM_CFLAGS += -m16
 
 bin_PROGRAMS = loader.elf
 
