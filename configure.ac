@@ -12,7 +12,7 @@ AM_INIT_AUTOMAKE([-Wall -Werror foreign])
 AC_PROG_CC
 AM_PROG_AS
 
-AC_SUBST([AM_CFLAGS], ["-ffreestanding -nostdinc -pedantic"])
+AC_SUBST([AM_CFLAGS], ["-ffreestanding -nostdinc -nostdlib -pedantic -Wall -Werror"])
 
 # Checks for libraries.
 
