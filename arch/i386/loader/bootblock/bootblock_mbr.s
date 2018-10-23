@@ -2,6 +2,8 @@
 .arch i8086
 .code16
 
+.include "bootblock.inc"
+
 .equ PTADDR,	0x1be			# partition table address
 .equ PTENUM,	0x04			# number of partition entries
 .equ PTESZ,	0x10			# partition entry size

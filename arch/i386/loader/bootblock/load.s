@@ -2,6 +2,8 @@
 .arch i8086
 .code16
 
+.include "bootblock.inc"
+
 .equ LDOFF, 0x400				# blocklist offset address
 .equ LDSEG, (BBSEG + LDOFF >> 4)
 

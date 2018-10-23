@@ -2,8 +2,8 @@
 .arch i8086
 .code16
 
-.equ	BIOSSEG,	0x07c0		# BIOS boot block segment
-.equ	BBSEG, 		0x0060		# move boot block segment here
+.include "bootblock.inc"
+
 .equ	CODESIZE,	0x200		# code size of boot sector
 .equ	STACKSIZE,	0x180		# stack size
 

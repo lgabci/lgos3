@@ -17,7 +17,7 @@ SECTIONS {
 
   .text : {
     init.o(.text)
-    bootblock_mbr.o(.text)
+    bootblock_fat.o(.text)
     disk.o(.text)
     misc.o(.text)
     video.o(.text)

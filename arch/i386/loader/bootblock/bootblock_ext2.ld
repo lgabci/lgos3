@@ -11,7 +11,7 @@ MEMORY {
 SECTIONS {
   .text : {
     init.o(.text)
-    bootblock_mbr.o(.text)
+    bootblock_ext2.o(.text)
     disk.o(.text)
     misc.o(.text)
     video.o(.text)

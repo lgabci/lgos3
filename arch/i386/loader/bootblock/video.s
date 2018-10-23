@@ -2,6 +2,9 @@
 .arch i8086
 .code16
 
+.include "bootblock.inc"
+.include "bootblock.inc"
+
 .equ	INT_VIDEO,	0x10		# video interrupt
 .equ	VID_WRITETT,	0x0e		# write teletype output
 

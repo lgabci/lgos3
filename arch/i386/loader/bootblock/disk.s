@@ -2,6 +2,8 @@
 .arch i8086
 .code16
 
+.include "bootblock.inc"
+
 .equ	INT_DISK,	0x13		# disk interrupt
 .equ	DISK_RESET,	0x00		# reset disk
 .equ	DISK_GETSTAT,	0x01		# get status of last operation
@@ -9,8 +11,6 @@
 .equ	DISK_GETPRM,	0x08		# get disk parameters
 
 .equ	DISK_RETRY,	5		# retry counts for read
-
-.equ	SECSIZE,	0x200		# sector size: 512 bytes
 
 .section .text	# --------------------------------------------------------------
 
@@ -71,14 +71,14 @@ readsector:	# --------------------------------------------------------------
 # H = lba / spt % h	8 bits
 # C = lba / spt / h	10 bits
 
-##	movw	$secnum, %si		# SI: address of secnum
+	movw	$secnum, %si		# SI: address of secnum
 
-	pushw	%ax			# save low word
-	xchgw	%dx, %ax
-	xorw	%dx, %dx
-	divw	(%si)			# high word / secnum
-	xchgw	%ax, %cx		# save LBA / SPT high word
-	popw	%ax			# DX:AX = LBA / SPT high rem, low word
+##	pushw	%ax			# save low word
+##	xchgw	%dx, %ax
+##	xorw	%dx, %dx
+##	divw	(%si)			# high word / secnum
+##	xchgw	%ax, %cx		# save LBA / SPT high word
+##	popw	%ax			# DX:AX = LBA / SPT high rem, low word
 	divw	(%si)			# remainder: sector number - 1
 	xchgw	%dx, %cx		# DX:AX = LBA / SPT
 	incw	%cx			# sec number (LBA mod SPT + 1, 6 bits)

@@ -2,6 +2,8 @@
 .arch i8086
 .code16
 
+.include "bootblock.inc"
+
 .section .itext, "ax"	# -----------------------------------------------------
 	jmp	start			# jump over FAT BPB
 
@@ -10,3 +12,4 @@
 
 .section .data	# -------------------------------------------------------------
 initstr:    .string "boot sector\r\n"
+.global initstr
