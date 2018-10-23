@@ -12,6 +12,7 @@
 .section .text	# --------------------------------------------------------------
 
 load_ldr_2nd:	# --------------------------------------------------------------
+.global load_ldr_2nd
 # load 2nd stage loader
 # IN:	-
 # OUT:	load loader into memory and jump to it, halts machine on error

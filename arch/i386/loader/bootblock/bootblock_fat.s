@@ -6,14 +6,7 @@
 	jmp	start			# jump over FAT BPB
 
 .section .text	# ------------------------------------------------------------
-.include "init.inc"
-
 	call	load_ldr_2nd		# load and run 2nd stage loader
-
-.include "disk.inc"
-.include "misc.inc"
-.include "video.inc"
-.include "load.inc"
 
 .section .data	# -------------------------------------------------------------
 initstr:    .string "boot sector\r\n"

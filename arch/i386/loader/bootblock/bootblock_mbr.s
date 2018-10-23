@@ -10,8 +10,6 @@
 .equ BSADDR,	0x1fe			# boot sector signature address
 .equ BOOTSIGN,	0xaa55			# boot sector signature
 
-.equ BIOSSEG, 0x000 ###
-
 .section .text	# --------------------------------------------------------------
 	movw	$PTADDR, %si		# find active partition
 	movb	$PTENUM, %bl

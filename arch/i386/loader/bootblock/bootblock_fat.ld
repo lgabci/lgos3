@@ -16,7 +16,12 @@ SECTIONS {
   } >iram
 
   .text : {
-    *(.text)
+    init.o(.text)
+    bootblock_mbr.o(.text)
+    disk.o(.text)
+    misc.o(.text)
+    video.o(.text)
+    load.o(.text)
   } >ram
 
   .data : ALIGN(1) {

@@ -71,7 +71,7 @@ readsector:	# --------------------------------------------------------------
 # H = lba / spt % h	8 bits
 # C = lba / spt / h	10 bits
 
-	movw	$secnum, %si		# SI: address of secnum
+##	movw	$secnum, %si		# SI: address of secnum
 
 	pushw	%ax			# save low word
 	xchgw	%dx, %ax

@@ -100,12 +100,15 @@ CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)"
 PROGRAMS = $(bin_PROGRAMS)
-am_bootblock_ext2_elf_OBJECTS = bootblock_ext2.$(OBJEXT)
+am_bootblock_ext2_elf_OBJECTS = bootblock_ext2.$(OBJEXT) \
+	init.$(OBJEXT) disk.$(OBJEXT) misc.$(OBJEXT) video.$(OBJEXT) \
+	load.$(OBJEXT)
 bootblock_ext2_elf_OBJECTS = $(am_bootblock_ext2_elf_OBJECTS)
 bootblock_ext2_elf_LDADD = $(LDADD)
 bootblock_ext2_elf_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 	$(bootblock_ext2_elf_LDFLAGS) $(LDFLAGS) -o $@
-am_bootblock_fat_elf_OBJECTS = bootblock_fat.$(OBJEXT)
+am_bootblock_fat_elf_OBJECTS = bootblock_fat.$(OBJEXT) init.$(OBJEXT) \
+	disk.$(OBJEXT) misc.$(OBJEXT) video.$(OBJEXT) load.$(OBJEXT)
 bootblock_fat_elf_OBJECTS = $(am_bootblock_fat_elf_OBJECTS)
 bootblock_fat_elf_LDADD = $(LDADD)
 bootblock_fat_elf_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
@@ -265,12 +268,11 @@ target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-AM_CCASFLAGS = -I $(srcdir)
 bootblock_mbr_elf_SOURCES = bootblock_mbr.s init.s disk.s misc.s video.s
 bootblock_mbr_elf_LDFLAGS = -T $(srcdir)/bootblock_mbr.ld
-bootblock_ext2_elf_SOURCES = bootblock_ext2.s init.inc disk.inc misc.inc video.inc load.inc
+bootblock_ext2_elf_SOURCES = bootblock_ext2.s init.s disk.s misc.s video.s load.s
 bootblock_ext2_elf_LDFLAGS = -T $(srcdir)/bootblock_ext2.ld
-bootblock_fat_elf_SOURCES = bootblock_fat.s init.inc disk.inc misc.inc video.inc load.inc
+bootblock_fat_elf_SOURCES = bootblock_fat.s init.s disk.s misc.s video.s load.s
 bootblock_fat_elf_LDFLAGS = -T $(srcdir)/bootblock_fat.ld
 all: all-am
 
