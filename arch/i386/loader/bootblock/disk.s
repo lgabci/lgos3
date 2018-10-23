@@ -1,4 +1,6 @@
 # LGOS3 loader boot block, disk
+.arch i8086
+.code16
 
 .equ	INT_DISK,	0x13		# disk interrupt
 .equ	DISK_RESET,	0x00		# reset disk
@@ -13,6 +15,7 @@
 .section .text	# --------------------------------------------------------------
 
 disk_getprm:	# --------------------------------------------------------------
+.global disk_getprm
 # get disk parameters
 # IN:	-
 # OUT:	variables: cylnum, headnum, secnum
@@ -56,6 +59,7 @@ disk_getprm:	# --------------------------------------------------------------
 	ret
 
 readsector:	# --------------------------------------------------------------
+.global readsector
 ## rewrite
 # read sector, using readsector_chs, halt on error
 # IN:	DX:AX: LBA number of sector to read
@@ -91,6 +95,7 @@ readsector:	# --------------------------------------------------------------
 	movb	%dl, %dh		# DH = head number
 
 readsector_chs:	# --------------------------------------------------------------
+.global readsector_chs
 # read sector - CHS, halt on error
 # IN:	CX: cylinder and sector number
 #	DH: head number
@@ -171,6 +176,7 @@ geomerrstr:	.string	"Geom. err"
 
 .section .bss	# --------------------------------------------------------------
 .lcomm	drive, 1			# BIOS boot disk ID (0x00 / 0x80, ...)
+.global drive
 
 	# the next 3 field must be in this order
 .lcomm	headnum, 2			# number of heads of disk

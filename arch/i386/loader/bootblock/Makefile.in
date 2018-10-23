@@ -110,7 +110,8 @@ bootblock_fat_elf_OBJECTS = $(am_bootblock_fat_elf_OBJECTS)
 bootblock_fat_elf_LDADD = $(LDADD)
 bootblock_fat_elf_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 	$(bootblock_fat_elf_LDFLAGS) $(LDFLAGS) -o $@
-am_bootblock_mbr_elf_OBJECTS = bootblock_mbr.$(OBJEXT)
+am_bootblock_mbr_elf_OBJECTS = bootblock_mbr.$(OBJEXT) init.$(OBJEXT) \
+	disk.$(OBJEXT) misc.$(OBJEXT) video.$(OBJEXT)
 bootblock_mbr_elf_OBJECTS = $(am_bootblock_mbr_elf_OBJECTS)
 bootblock_mbr_elf_LDADD = $(LDADD)
 bootblock_mbr_elf_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
@@ -265,7 +266,7 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 AM_CCASFLAGS = -I $(srcdir)
-bootblock_mbr_elf_SOURCES = bootblock_mbr.s init.inc disk.inc misc.inc video.inc
+bootblock_mbr_elf_SOURCES = bootblock_mbr.s init.s disk.s misc.s video.s
 bootblock_mbr_elf_LDFLAGS = -T $(srcdir)/bootblock_mbr.ld
 bootblock_ext2_elf_SOURCES = bootblock_ext2.s init.inc disk.inc misc.inc video.inc load.inc
 bootblock_ext2_elf_LDFLAGS = -T $(srcdir)/bootblock_ext2.ld

@@ -8,7 +8,7 @@
 .equ	STACKSIZE,	0x180		# stack size
 
 .section .text	# ------------------------------------------------------------
-.globl start
+.global start
 start:
 	cli				# disable interrupts
 
@@ -41,5 +41,3 @@ rep	movsw
 
 .section .bss	# --------------------------------------------------------------
 .lcomm	stack, STACKSIZE		# stack
-
-.section .text	# --------------------------------------------------------------

@@ -1,4 +1,6 @@
 # LGOS3 loader boot block, loader rutins
+.arch i8086
+.code16
 
 .equ LDOFF, 0x400				# blocklist offset address
 .equ LDSEG, (BBSEG + LDOFF >> 4)

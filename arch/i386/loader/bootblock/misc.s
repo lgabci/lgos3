@@ -1,8 +1,11 @@
 # LGOS3 loader boot block, misc functions
+.arch i8086
+.code16
 
 .section .text	# --------------------------------------------------------------
 
 stopfloppy:	# --------------------------------------------------------------
+.global stopfloppy
 # stop floppy motor
 # IN:	-
 # OUT:	-
@@ -13,6 +16,7 @@ stopfloppy:	# --------------------------------------------------------------
 	ret
 
 stoperr:	# --------------------------------------------------------------
+.global stoperr
 # wite error message and stops machine
 # IN:	SI: pointer to error message
 # OUT:	-

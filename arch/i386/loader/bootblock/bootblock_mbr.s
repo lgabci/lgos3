@@ -1,5 +1,6 @@
 # LGOS3 loader boot block for MBR
-.include "init.inc"
+.arch i8086
+.code16
 
 .equ PTADDR,	0x1be			# partition table address
 .equ PTENUM,	0x04			# number of partition entries
@@ -9,6 +10,9 @@
 .equ BSADDR,	0x1fe			# boot sector signature address
 .equ BOOTSIGN,	0xaa55			# boot sector signature
 
+.equ BIOSSEG, 0x000 ###
+
+.section .text	# --------------------------------------------------------------
 	movw	$PTADDR, %si		# find active partition
 	movb	$PTENUM, %bl
 
@@ -75,12 +79,9 @@
 	movb	(%si), %dl		# boot drive (boot status from pt)
 	ljmp	$0, $BIOSSEG << 4	# jump to bootsector
 
-.include "disk.inc"
-.include "misc.inc"
-.include "video.inc"
-
 .section .data	# ------------------------------------------------------------
 initstr:    .string "MBR\r\n"
+.global initstr
 invptstr:   .string "Invld part table."
 invbsstr:   .string "Invld boot sector."
 

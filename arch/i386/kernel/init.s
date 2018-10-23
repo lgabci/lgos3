@@ -94,7 +94,7 @@
 .section .text16, "ax", @progbits	# --------------------------------------
 			# real mode .text section
 
-.globl rmstart					# real mode start address
+.global rmstart					# real mode start address
 rmstart:
 	cli					# disable interrupts
 hlt ##
@@ -438,7 +438,7 @@ rmvidpage:	.skip 1			# real mode video page
 			# protected mode .text section
 .arch i386
 .code32
-.globl start32
+.global start32
 start32:					# called from grub
 	cli					# disable interrupts
 	movb	$0x80, %al			# disable NMI

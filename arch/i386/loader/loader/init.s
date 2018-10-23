@@ -15,7 +15,7 @@
 .section .text_init, "ax", @progbits	# --------------------------------------
 			# init .text section
 
-.globl start
+.global start
 start:
 	cli					# disable interrupts
 	movw	%cs, %ax			# set segment regs.
@@ -116,7 +116,7 @@ start:
 .Lwrtend:
 	ret
 
-.globl _halt
+.global _halt
 _halt:
 	call	_stopfloppy			# stop floppy motors
 	cli					# disbale interrupts
@@ -124,7 +124,7 @@ _halt:
 	hlt					# halt CPU
 	jmp	.Lhlt
 
-.globl _stopfloppy
+.global _stopfloppy
 _stopfloppy:					# stop floppy motors
 	xorb	%al, %al
 	movw	$0x3f2, %dx
@@ -132,7 +132,7 @@ _stopfloppy:					# stop floppy motors
 	ret
 
 .section .data	# --------------------------------------------------------------
-.globl ramsize
+.global ramsize
 ramsize:	.hword 0, 0			# RAM size in bytes
 
 strno386:	.string "LGOS loader requires 80386 or better CPU."
@@ -142,5 +142,5 @@ strnoram:	.string "Not enough memory."
 
 .lcomm stack, STACKSIZE				# stack
 
-.globl dataseg
+.global dataseg
 .lcomm dataseg, 2				# data segment (= all segments)

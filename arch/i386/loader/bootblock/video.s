@@ -1,4 +1,6 @@
 # LGOS3 loader boot block, video rutins
+.arch i8086
+.code16
 
 .equ	INT_VIDEO,	0x10		# video interrupt
 .equ	VID_WRITETT,	0x0e		# write teletype output
@@ -13,6 +15,7 @@
 1:
 	int	$INT_VIDEO
 writestr:
+.global writestr
 	movb	$VID_WRITETT, %ah	# write teletype output
 	xorw	%bx, %bx		# page 0, foreground color 0 (graph)
 	cld				# increment

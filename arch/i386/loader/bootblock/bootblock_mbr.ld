@@ -3,14 +3,18 @@ OUTPUT_FORMAT(elf32-i386)
 ENTRY(start)
 
 MEMORY {
-  ram  : ORIGIN = 0,     LENGTH = 0x1be
+  ram  : ORIGIN = 0,     LENGTH = 0x81be
   bsgn : ORIGIN = 0x1fe, LENGTH = 2
   bss  : ORIGIN = 0x200, LENGTH = 0x200
 }
 
 SECTIONS {
   .text : {
-    *(.text)
+    init.o(.text)
+    bootblock_mbr.o(.text)
+    disk.o(.text)
+    misc.o(.text)
+    video.o(.text)
   } >ram
 
   .data : ALIGN(1) {
