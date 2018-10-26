@@ -271,7 +271,6 @@ top_srcdir = @top_srcdir@
 AM_CCASFLAGS = -I $(srcdir)
 bootblock_mbr_elf_SOURCES = bootblock_mbr.s init.s disk.s misc.s video.s
 bootblock_mbr_elf_LDFLAGS = -T $(srcdir)/bootblock_mbr.ld
-EXTRA_bootblock_mbr_elf_DEPENDENCIES = bootblock.inc
 bootblock_ext2_elf_SOURCES = bootblock_ext2.s init.s disk.s misc.s video.s load.s
 bootblock_ext2_elf_LDFLAGS = -T $(srcdir)/bootblock_ext2.ld
 bootblock_fat_elf_SOURCES = bootblock_fat.s init.s disk.s misc.s video.s load.s
@@ -580,6 +579,8 @@ uninstall-am: uninstall-binPROGRAMS
 
 .PRECIOUS: Makefile
 
+
+bootblock_mbr.o bootblock_ext2.o bootblock_fat.o init.o disk.o misc.o video.o load.o: bootblock.inc
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
