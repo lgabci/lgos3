@@ -67,30 +67,24 @@ readsector:	# --------------------------------------------------------------
 # OUT:	memory, halt on error
 # MOD:	AX, CX, DX, SI, DI, flags
 
-# S = lba % spt + 1	6 bits
-# H = lba / spt % h	8 bits
-# C = lba / spt / h	10 bits
+# C = lba / spt / h	10 bits: CH + CL 2 high bits
+# H = lba / spt % h	8 bits: DH
+# S = lba % spt + 1	6 bits: CL
 
 	movw	$secnum, %si		# SI: address of secnum
+	cmpw	(%si), %dx		# LBA / SPT max 10 bits --> DX < secnum
+	ja	geomerror
+	divw	(%si)			# LBA / secnum
 
-##	pushw	%ax			# save low word
-##	xchgw	%dx, %ax
-##	xorw	%dx, %dx
-##	divw	(%si)			# high word / secnum
-##	xchgw	%ax, %cx		# save LBA / SPT high word
-##	popw	%ax			# DX:AX = LBA / SPT high rem, low word
-	divw	(%si)			# remainder: sector number - 1
-	xchgw	%dx, %cx		# DX:AX = LBA / SPT
-	incw	%cx			# sec number (LBA mod SPT + 1, 6 bits)
+	incw	%dx			# sec number (LBA mod SPT + 1, 6 bits)
+	movw	%di, %dx
 
-	divw	(headnum)		# LBA / SPT / number of heads
-	## test: DX = 0, cyl must fit in 10 bits
+	xorw	%dx, %dx
+	divw	-2(%si) ## (headnum)		# LBA / SPT / number of heads
 	xchgb	%ah, %al		# AX = cylinder
-	pushw	%cx
 	movb	$6, %cl
 	shlb	%cl, %al
-	popw	%cx
-	orw	%ax, %cx		# CX = cylinder and sector
+	orw	%ax, %di		# CX = cylinder and sector
 
 	movb	%dl, %dh		# DH = head number
 
