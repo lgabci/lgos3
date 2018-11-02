@@ -2,8 +2,6 @@
 .arch i8086
 .code16
 
-.include "bootblock.inc"
-
 .equ	INT_DISK,	0x13		# disk interrupt
 .equ	DISK_RESET,	0x00		# reset disk
 .equ	DISK_GETSTAT,	0x01		# get status of last operation

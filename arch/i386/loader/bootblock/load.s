@@ -7,6 +7,7 @@
 .equ LDOFF, 0x400				# blocklist offset address
 .equ LDSEG, (BBSEG + LDOFF >> 4)
 
+.equ SECSIZE, 0x200				# sector size: 512 bytes
 .equ LDRSEG, (LDSEG + SECSIZE >> 4)		# segment address of loader
 
 .equ INT_GETRAMSIZE, 0x12			# get memory size

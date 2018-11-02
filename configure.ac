@@ -29,5 +29,6 @@ AC_CONFIG_FILES([Makefile
                  arch/i386/kernel/Makefile
                  arch/i386/loader/Makefile
                  arch/i386/loader/loader/Makefile
-                 arch/i386/loader/bootblock/Makefile])
+                 arch/i386/loader/bootblock/Makefile
+                 arch/i386/emulator/Makefile])
 AC_OUTPUT

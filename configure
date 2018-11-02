@@ -3604,7 +3604,7 @@ AM_CFLAGS="-ffreestanding -nostdinc -nostdlib -pedantic -Wall -Werror"
 #AC_FUNC_MALLOC
 #AC_CHECK_FUNCS([memset strchr])
 
-ac_config_files="$ac_config_files Makefile arch/i386/kernel/Makefile arch/i386/loader/Makefile arch/i386/loader/loader/Makefile arch/i386/loader/bootblock/Makefile"
+ac_config_files="$ac_config_files Makefile arch/i386/kernel/Makefile arch/i386/loader/Makefile arch/i386/loader/loader/Makefile arch/i386/loader/bootblock/Makefile arch/i386/emulator/Makefile"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -4342,6 +4342,7 @@ do
     "arch/i386/loader/Makefile") CONFIG_FILES="$CONFIG_FILES arch/i386/loader/Makefile" ;;
     "arch/i386/loader/loader/Makefile") CONFIG_FILES="$CONFIG_FILES arch/i386/loader/loader/Makefile" ;;
     "arch/i386/loader/bootblock/Makefile") CONFIG_FILES="$CONFIG_FILES arch/i386/loader/bootblock/Makefile" ;;
+    "arch/i386/emulator/Makefile") CONFIG_FILES="$CONFIG_FILES arch/i386/emulator/Makefile" ;;
 
   *) as_fn_error $? "invalid argument: \`$ac_config_target'" "$LINENO" 5;;
   esac

@@ -1,6 +1,6 @@
 # LGOS3 loader boot block for Ext2
-
-.include "bootblock.inc"
+.arch i8086
+.code16
 
 .section .text	# ------------------------------------------------------------
 	call	load_ldr_2nd		# load and run 2nd stage loader
