@@ -195,6 +195,7 @@ CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@
 CPPFLAGS = @CPPFLAGS@
 CYGPATH_W = @CYGPATH_W@
+DD = @DD@
 DEFS = @DEFS@
 DEPDIR = @DEPDIR@
 ECHO_C = @ECHO_C@
@@ -580,7 +581,9 @@ uninstall-am: uninstall-binPROGRAMS
 .PRECIOUS: Makefile
 
 
-bootblock_mbr.$(OBJEXT) init.$(OBJEXT) load.$(OBJEXT): bootblock.inc
+init.$(OBJEXT): bootblock.inc
+load.$(OBJEXT): bootblock.inc
+bootblock_mbr.$(OBJEXT): bootblock.inc
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

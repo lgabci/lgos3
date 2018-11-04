@@ -163,6 +163,7 @@ CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@
 CPPFLAGS = @CPPFLAGS@
 CYGPATH_W = @CYGPATH_W@
+DD = @DD@
 DEFS = @DEFS@
 DEPDIR = @DEPDIR@
 ECHO_C = @ECHO_C@
@@ -238,6 +239,7 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 data_DATA = lgos3.img
 CLEANFILES = lgos3.img
+imgsize = 100M
 all: all-am
 
 .SUFFIXES:
@@ -450,7 +452,8 @@ uninstall-am: uninstall-dataDATA
 
 
 lgos3.img: ../loader/bootblock/bootblock_mbr.elf
-	touch $@
+	-$(RM) $@
+	$(DD) of=$@ bs=1 seek=$(imgsize) count=0 >/dev/null
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

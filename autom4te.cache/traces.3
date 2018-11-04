@@ -475,6 +475,27 @@ else
   AC_MSG_WARN(['missing' script is too old or missing])
 fi
 ])
+m4trace:/usr/share/aclocal-1.15/mkdirp.m4:11: -1- AC_DEFUN([AM_PROG_MKDIR_P], [AC_PREREQ([2.60])dnl
+AC_REQUIRE([AC_PROG_MKDIR_P])dnl
+dnl FIXME we are no longer going to remove this! adjust warning
+dnl FIXME message accordingly.
+AC_DIAGNOSE([obsolete],
+[$0: this macro is deprecated, and will soon be removed.
+You should use the Autoconf-provided 'AC][_PROG_MKDIR_P' macro instead,
+and use '$(MKDIR_P)' instead of '$(mkdir_p)'in your Makefile.am files.])
+dnl Automake 1.8 to 1.9.6 used to define mkdir_p.  We now use MKDIR_P,
+dnl while keeping a definition of mkdir_p for backward compatibility.
+dnl @MKDIR_P@ is magic: AC_OUTPUT adjusts its value for each Makefile.
+dnl However we cannot define mkdir_p as $(MKDIR_P) for the sake of
+dnl Makefile.ins that do not define MKDIR_P, so we do our own
+dnl adjustment using top_builddir (which is defined more often than
+dnl MKDIR_P).
+AC_SUBST([mkdir_p], ["$MKDIR_P"])dnl
+case $mkdir_p in
+  [[\\/$]]* | ?:[[\\/]]*) ;;
+  */*) mkdir_p="\$(top_builddir)/$mkdir_p" ;;
+esac
+])
 m4trace:/usr/share/aclocal-1.15/options.m4:11: -1- AC_DEFUN([_AM_MANGLE_OPTION], [[_AM_OPTION_]m4_bpatsubst($1, [[^a-zA-Z0-9_]], [_])])
 m4trace:/usr/share/aclocal-1.15/options.m4:17: -1- AC_DEFUN([_AM_SET_OPTION], [m4_define(_AM_MANGLE_OPTION([$1]), [1])])
 m4trace:/usr/share/aclocal-1.15/options.m4:23: -1- AC_DEFUN([_AM_SET_OPTIONS], [m4_foreach_w([_AM_Option], [$1], [_AM_SET_OPTION(_AM_Option)])])
@@ -949,6 +970,12 @@ m4trace:configure.ac:13: -1- m4_pattern_allow([^am__fastdepCCAS_TRUE$])
 m4trace:configure.ac:13: -1- m4_pattern_allow([^am__fastdepCCAS_FALSE$])
 m4trace:configure.ac:13: -1- _AM_SUBST_NOTMAKE([am__fastdepCCAS_TRUE])
 m4trace:configure.ac:13: -1- _AM_SUBST_NOTMAKE([am__fastdepCCAS_FALSE])
+m4trace:configure.ac:15: -1- AM_PROG_MKDIR_P
+m4trace:configure.ac:15: -1- _m4_warn([obsolete], [AM_PROG_MKDIR_P: this macro is deprecated, and will soon be removed.
+You should use the Autoconf-provided 'AC_PROG_MKDIR_P' macro instead,
+and use '$(MKDIR_P)' instead of '$(mkdir_p)'in your Makefile.am files.], [/usr/share/aclocal-1.15/mkdirp.m4:11: AM_PROG_MKDIR_P is expanded from...
+configure.ac:15: the top level])
+m4trace:configure.ac:15: -1- m4_pattern_allow([^mkdir_p$])
 m4trace:configure.ac:17: -1- m4_pattern_allow([^DD$])
 m4trace:configure.ac:23: -1- m4_pattern_allow([^AM_CFLAGS$])
 m4trace:configure.ac:42: -1- m4_pattern_allow([^LIB@&t@OBJS$])

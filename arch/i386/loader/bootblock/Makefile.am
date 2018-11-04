@@ -12,4 +12,6 @@ bootblock_ext2_elf_LDFLAGS = -T $(srcdir)/bootblock_ext2.ld
 bootblock_fat_elf_SOURCES = bootblock_fat.s init.s disk.s misc.s video.s load.s
 bootblock_fat_elf_LDFLAGS = -T $(srcdir)/bootblock_fat.ld
 
-bootblock_mbr.$(OBJEXT) init.$(OBJEXT) load.$(OBJEXT): bootblock.inc
+init.$(OBJEXT): bootblock.inc
+load.$(OBJEXT): bootblock.inc
+bootblock_mbr.$(OBJEXT): bootblock.inc

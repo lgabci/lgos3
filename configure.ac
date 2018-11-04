@@ -12,6 +12,14 @@ AM_INIT_AUTOMAKE([-Wall -Werror foreign])
 AC_PROG_CC
 AM_PROG_AS
 
+AC_PROG_MKDIR_P
+
+AC_PATH_PROG([DD],[dd])
+if test x"${DD}" == x; then
+  AC_MSG_ERROR([Program not found: dd])
+fi
+
+
 AC_SUBST([AM_CFLAGS], ["-ffreestanding -nostdinc -nostdlib -pedantic -Wall -Werror"])
 
 # Checks for libraries.
