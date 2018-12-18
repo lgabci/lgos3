@@ -9,7 +9,7 @@ AC_CONFIG_HEADERS([config.h])
 AM_INIT_AUTOMAKE([-Wall -Werror foreign])
 
 # Checks for programs.
-AC_PROG_CC
+AC_PROG_CC([gcc])
 AM_PROG_AS
 
 AC_PROG_AWK
@@ -23,7 +23,7 @@ if test x"${OBJDUMP}" == x; then
   AC_MSG_ERROR([Program not found: objdump])
 fi
 
-AC_SUBST([AM_CFLAGS], ["-ffreestanding -nostdinc -nostdlib -pedantic -Wall -Werror"])
+AC_SUBST([AM_CFLAGS], ["-ffreestanding -nostdlib -lgcc -pedantic -Wall -Werror"])
 
 
 AC_SUBST([DDELF], [$OBJDUMP])
