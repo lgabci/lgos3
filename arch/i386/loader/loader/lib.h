@@ -44,8 +44,8 @@ typedef struct farptr_s farptr_t;
 
 typedef u32_t size_t;				/* size type		*/
 
-u64_t __udivdi3(u64_t n, u64_t d);	/* 64 bit division algorithms	*/
-u64_t __umoddi3(u64_t n, u64_t d);
+// u64_t __udivdi3(u64_t n, u64_t d);	/* 64 bit division algorithms	*/
+// u64_t __umoddi3(u64_t n, u64_t d);
 
 farptr_t farptr(void *offset);			/* far pointer func.s	*/
 farptr_t farptrnorm(farptr_t p);

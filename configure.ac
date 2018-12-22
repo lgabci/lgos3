@@ -23,8 +23,8 @@ if test x"${OBJDUMP}" == x; then
   AC_MSG_ERROR([Program not found: objdump])
 fi
 
-AC_SUBST([AM_CFLAGS], ["-ffreestanding -nostdlib -lgcc -pedantic -Wall -Werror"])
-
+AC_SUBST([AM_CFLAGS], ["-ffreestanding -pedantic -Wall -Werror"])
+AC_SUBST([AM_LDFLAGS], ["-nostdlib -static"])
 
 AC_SUBST([DDELF], [$OBJDUMP])
 #i686-lgos-objdump -h arch/i386/loader/bootblock/bootblock_mbr.elf | awk '{if ($1 ~ /^[0-9]+$/) {str = $6 " " $4 " " $3; getline; if (/LOAD/) print str}}' | while read skip seek count; do dd if="arch/i386/loader/bootblock/bootblock_mbr.elf" of="arch/i386/emulator/lgos3.img" bs=1 skip=$((0x$skip)) seek=$((0x$seek)) count=$((0x$count)) conv=notrunc iflag=fullblock; done
