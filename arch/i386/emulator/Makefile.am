@@ -6,5 +6,7 @@ imgsize = 100M
 
 lgos3.img: ../loader/bootblock/bootblock_mbr.elf
 	-$(RM) $@
-	-$(DDELF)
+	echo DDELF $(DDELF)
 	$(DD) of=$@ bs=1 seek=$(imgsize) count=0 >/dev/null
+	-$(RM) $@
+	rm -rf $@
