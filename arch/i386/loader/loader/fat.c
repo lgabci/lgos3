@@ -542,7 +542,8 @@ static void getdirentry(const char *path, direntry_t *entry) {
   direntry_t *pe;
 
   for (pe = NULL, f = path; (i = strtoken(&f, PATHSEP)); pe = &e, f = f + i) {
-    char fname[i + 1];		/* walk trough the whole path	*/
+    /* // TODO: fname len = i + 1 */
+    char fname[256];		/* walk trough the whole path	*/
 
     memcpy(&fname, f, i);
     fname[i] = '\0';

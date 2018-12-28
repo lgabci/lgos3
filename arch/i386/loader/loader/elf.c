@@ -596,11 +596,12 @@ output:	real mode entry point
 */
 Elf64_Addr_t getrmentry(Elf64_Off_t shoff, Elf64_Half_t shentsize,
   Elf64_Half_t shnum) {
+  Elf64_Half_t i;
+
   if (shoff == 0 || shnum == 0) {
     stoperror("No section table found.");
   }
 
-  Elf64_Half_t i;
   for (i = 0; i < shnum; i ++) {	/* read all sections		*/
     Elf64_Word_t sh_type;		/* section data			*/
     Elf64_Off_t sh_offset;

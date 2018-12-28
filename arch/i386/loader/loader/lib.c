@@ -15,27 +15,27 @@ input:	n	numerator (dividend)
 	r	pointer to remainder
 output:	quotient
 */
-u64_t __udivrem(u64_t n, u64_t d, u64_t *rem) {
-  u64_t q;	/* quotient */
-  u64_t r;	/* remainder */
-  signed int i;	/* loop variable */
-
-  q = 0;
-  r = 0;
-  if (d) {	/* divide by 0 ? */
-    for (i = 63; i >= 0; i --) {
-      r = (r << 1) | (n >> i & 1);
-      if (r >= d) {
-        r = r - d;
-        q = q | (u64_t)1 << i;
-      }
-    }
-  }
-  if (rem) {
-    *rem = r;
-  }
-  return q;
-}
+/* // u64_t __udivrem(u64_t n, u64_t d, u64_t *rem) {
+//   u64_t q;	/ * quotient * /
+//   u64_t r;	/ * remainder * /
+//   signed int i;	/ * loop variable * /
+// 
+//   q = 0;
+//   r = 0;
+//   if (d) {	/ * divide by 0 ? * /
+//     for (i = 63; i >= 0; i --) {
+//       r = (r << 1) | (n >> i & 1);
+//       if (r >= d) {
+//         r = r - d;
+//         q = q | (u64_t)1 << i;
+//       }
+//     }
+//   }
+//   if (rem) {
+//     *rem = r;
+//   }
+//   return q;
+// } */
 
 /*
 64 bit division, calls by C compiler
@@ -43,9 +43,9 @@ input:	n	numerator (dividend)
 	d	denominator (divisor)
 output:	quotient
 */
-u64_t __udivdi3(u64_t n, u64_t d) {
-  return __udivrem(n, d, 0);
-}
+/* // u64_t __udivdi3(u64_t n, u64_t d) {
+//   return __udivrem(n, d, 0);
+// } */
 
 /*
 64 bit modulo division, calls by C compiler
@@ -53,12 +53,12 @@ input:	n	numerator (dividend)
 	d	denominator (divisor)
 output:	remainder
 */
-u64_t __umoddi3(u64_t n, u64_t d) {
-  u64_t r;	/* remainder */
-
-  __udivrem(n, d, &r);
-  return r;
-}
+/* // u64_t __umoddi3(u64_t n, u64_t d) {
+//   u64_t r;	/ * remainder * /
+// 
+//   __udivrem(n, d, &r);
+//   return r;
+// } */
 
 /* create far pointer
 return far pointer dataseg:offset
