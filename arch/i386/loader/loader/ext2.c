@@ -246,12 +246,13 @@ struct __attribute__ ((packed)) inode_s {	/* i-node structure	*/
 };
 typedef struct inode_s inode_t;
 
+/* // TODO: revision 0: no file_type, name_len is 16 bits len */
 struct __attribute__ ((packed)) direntry_s {	/* directory entry	*/
   u32_t inode;		/* i-node number of file entry, 0 = not used	*/
   u16_t rec_len;		/* next entry from start of this entry	*/
   u8_t name_len;		/* length of the name in bytes		*/
   u8_t file_type;		/* value used to indicate file type	*/
-  u8_t name[];			/* name of the entry			*/
+  u8_t name[255];	/* variable length array: name of the entry	*/
 };
 typedef struct direntry_s direntry_t;
 
@@ -532,15 +533,16 @@ static u32_t getinodenum(const char *fpath) {
   u32_t inodenum;
   inode_t inode;
   const char *f;
-  size_t fpathlen;
+  /* // size_t fpathlen; */
   size_t i;
 
   inodenum = EXT2_ROOT_INO;		/* root i-node			*/
   inode = getinode(inodenum);		/* directory i-node		*/
 
-  fpathlen = strlen(fpath);
+  /* // fpathlen = strlen(fpath); */
   for (f = fpath; (i = strtoken(&f, PATHSEP)); f = f + i) {
-    char fname[i + 1];			/* walk trough the whole path	*/
+    /* // TODO: fname length = i + 1 */
+    char fname[256];			/* walk trough the whole path	*/
     int foundflg;
 
     memcpy(&fname, f, i);
@@ -556,7 +558,8 @@ static u32_t getinodenum(const char *fpath) {
       for (dirpos = 0; dirpos < isize; dirpos = dirpos + direntry.rec_len) {
         readcont(&inode, dirpos, sizeof(direntry_t), farptr(&direntry));
         if (getdnamelen(&direntry) == i) {	/* dir. entry name len	*/
-          char tempname[i + 1];			/* read dir entry name	*/
+          /* // TODO: tempname length = i + 1 */
+          char tempname[256];			/* read dir entry name	*/
 
           readcont(&inode, dirpos + sizeof(direntry_t), i, farptr(&tempname));
           tempname[i] = '\0';
@@ -567,19 +570,20 @@ static u32_t getinodenum(const char *fpath) {
             if ((inode.i_mode & EXT2_S_IFMASK) == EXT2_S_IFLNK) {
               char firstchr;			/* first char of symlink  */
               u32_t symlen;	/* symlink length, always 32 bit only	*/
-              u32_t newpathlen;
+              /* // u32_t newpathlen; */
 
               symlen = getisize(&inode);	/* symlink length	*/
               readcont(&inode, 0, 1, farptr(&firstchr));  /* first char	*/
-              if (firstchr == PATHSEP) {	/* absolute symlink	*/
+              /* // if (firstchr == PATHSEP) {	/ * absolute symlink	* /
                 newpathlen = fpathlen - (f - fpath) - i + symlen;
               }
-              else {				/* relative symlink	*/
+              else {				/ * relative symlink	* /
                 newpathlen = fpathlen - i + symlen;
-              }
+              } */
 
               {
-                char newpath[newpathlen + 1];	/* new path		*/
+                /* // TODO: newpath length = newpathlen  + 1 */
+                char newpath[256];		/* new path		*/
                 char *symcont;			/* read symlink here	*/
 
                 if (firstchr == PATHSEP) {	/* absolute symlink	*/

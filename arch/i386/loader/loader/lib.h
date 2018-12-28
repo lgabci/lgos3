@@ -2,17 +2,19 @@
 #ifndef __lib_h__
 #define __lib_h__
 
+#include <stdint.h>
+
 #define	NULL		(void *)0		/* NULL value		*/
 
 typedef unsigned char u8_t;			/* unsigned types	*/
 typedef unsigned short int u16_t;
 typedef unsigned long int u32_t;
-typedef unsigned long long int u64_t;
+typedef uint64_t u64_t;
 
 typedef signed char s8_t;			/* signed types		*/
 typedef signed short int s16_t;
 typedef signed long int s32_t;
-typedef signed long long int s64_t;
+typedef int64_t s64_t;
 
 #define	MAX_U8	0xff				/* max unsigned values	*/
 #define	MAX_U16	0xffff
@@ -43,9 +45,6 @@ struct __attribute__ ((packed)) farptr_s {	/* far pointer seg:off	*/
 typedef struct farptr_s farptr_t;
 
 typedef u32_t size_t;				/* size type		*/
-
-// u64_t __udivdi3(u64_t n, u64_t d);	/* 64 bit division algorithms	*/
-// u64_t __umoddi3(u64_t n, u64_t d);
 
 farptr_t farptr(void *offset);			/* far pointer func.s	*/
 farptr_t farptrnorm(farptr_t p);

@@ -320,7 +320,7 @@ static void initdisk(const char *dev) {
       u16_t es;
 
       __asm__ __volatile__ (			/* get drive parameters	*/
-     // mov-ok helyett push/pop-ok?
+     /* // mov-ok helyett push/pop-ok? */
         "       movw    %%ds, %[ds]	\n"	/* BIOS bug: save DS	*/
         "       movw    %%es, %[es]	\n"	/* save ES		*/
         "       int     %[int_disk]	\n"
@@ -344,7 +344,7 @@ static void initdisk(const char *dev) {
         "       movb    $0, %[errflg]	\n"
         "       adcb    $0, %[errflg]	\n"	/* error flag		*/
         "       orb     %%ah, %%al	\n"	/* error stat, BIOS bug	*/
-	// must use errflg and status from DISK_GETPRM, not from here!
+	/* // must use errflg and status from DISK_GETPRM, not from here! */
         : [errflg] "=m" (errflg),		/* error flag, CF	*/
           "=a" (status)				/* AH = status		*/
         : [int_disk] "i" (INT_DISK),
@@ -505,7 +505,13 @@ static void readphyssec(u64_t sector, u16_t segment) {
   }
 
   if (driveprm.extbios) {			/* BIOS ext found	*/
-    dap_t dap = {0x10, 0, 1, 0, segment, sector};	/* DAP		*/
+    dap_t dap;					/* DAP			*/
+    dap.size = 0x10;
+    dap.reserved = 0;
+    dap.seccount = 1;
+    dap.offset = 0;
+    dap.segment = segment;
+    dap.sector = sector;
 
     __asm__ __volatile__ (			/* ext. read		*/
       "       int     %[int_disk]	\n"
@@ -603,7 +609,7 @@ static u16_t readcachedsec(u64_t sector) {
     if (driveprm.cacheeptr[i].readcnt &&
       driveprm.cacheeptr[i].sector == sector) {	/* cache hit		*/
       driveprm.cacheeptr[i].readcnt = ++ readcnt;
-//      { u8_t c = getcolor(); setcolor(CLR_LGREEN);  printf("[%llu] ", sector); setcolor(c); }	//
+/* //      { u8_t c = getcolor(); setcolor(CLR_LGREEN);  printf("[%llu] ", sector); setcolor(c); }	// */
       return driveprm.cacheseg + (i * driveprm.bytes >> 4);
     }
     if (driveprm.cacheeptr[i].readcnt < mincnt) {
@@ -616,7 +622,7 @@ static u16_t readcachedsec(u64_t sector) {
   driveprm.cacheeptr[oldpos].sector = sector;
   retseg = driveprm.cacheseg + (oldpos * driveprm.bytes >> 4);
   readphyssec(sector, retseg);
-//  { u8_t c = getcolor(); setcolor(CLR_LRED);  printf("[%llu] ", sector); setcolor(c); }	//
+/* //  { u8_t c = getcolor(); setcolor(CLR_LRED);  printf("[%llu] ", sector); setcolor(c); }	// */
 
   return retseg;
 }

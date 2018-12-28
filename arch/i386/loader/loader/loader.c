@@ -44,7 +44,8 @@ void loadkernel() {
   }
 
   {					/* read config file	*/
-    char path[cfsize + 1];		/* kernel path		*/
+    /* // TODO: path len = cfsize + 1 */
+    char path[256];			/* kernel path		*/
     char *params;			/* kernel parameters	*/
 
     readfile(0, cfsize, &path);		/* read path & params	*/

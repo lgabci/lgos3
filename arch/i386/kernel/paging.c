@@ -21,43 +21,43 @@
 #define PTBL_ADDR 0xffc00000		/* page tbls lin addr	*/
 #define PDIR_ADDR 0xff800000		/* page dir lin addr	*/
 
-struct s_pde {				/* page directory entry	*/
-  u32_t p        : 1;			/* present bit		*/
-  u32_t rw       : 1;			/* read/write bit	*/
-  u32_t us       : 1;			/* user/supervisor bit	*/
-  u32_t          : 2;			/* reserved bits	*/
-  u32_t a        : 1;			/* accessed bit		*/
-  u32_t          : 3;			/* reserved bits	*/
-  u32_t avl      : 3;			/* available bits	*/
-  u32_t pg_frame : 20;			/* page frame address	*/
-};
-union u_pde {
+union u_pde {				/* page directory entry	*/
+  struct s_pde {
+    unsigned int p        : 1;		/* present bit		*/
+    unsigned int rw       : 1;		/* read/write bit	*/
+    unsigned int us       : 1;		/* user/supervisor bit	*/
+    unsigned int          : 2;		/* reserved bits	*/
+    unsigned int a        : 1;		/* accessed bit		*/
+    unsigned int          : 3;		/* reserved bits	*/
+    unsigned int avl      : 3;		/* available bits	*/
+    unsigned int pg_frame : 20;		/* page frame address	*/
+  } s;
   u32_t v;
-  struct s_pde s;
-};
+} __attribute__ ((packed));
 typedef union u_pde t_pde;
 
-struct s_pte {				/* page table entry	*/
-  u32_t p        : 1;			/* present bit		*/
-  u32_t rw       : 1;			/* read/write bit	*/
-  u32_t us       : 1;			/* user/supervisor bit	*/
-  u32_t          : 2;			/* reserved bits	*/
-  u32_t a        : 1;			/* accessed bit		*/
-  u32_t d        : 1;			/* dirty bit		*/
-  u32_t          : 2;			/* reserved bits	*/
-  u32_t avl      : 3;			/* available bits	*/
-  u32_t pg_frame : 20;			/* page frame address	*/
-};
-union u_pte {
+union u_pte {				/* page table entry	*/
+  struct s_pte {
+    unsigned int p        : 1;		/* present bit		*/
+    unsigned int rw       : 1;		/* read/write bit	*/
+    unsigned int us       : 1;		/* user/supervisor bit	*/
+    unsigned int          : 2;		/* reserved bits	*/
+    unsigned int a        : 1;		/* accessed bit		*/
+    unsigned int d        : 1;		/* dirty bit		*/
+    unsigned int          : 2;		/* reserved bits	*/
+    unsigned int avl      : 3;		/* available bits	*/
+    unsigned int pg_frame : 20;		/* page frame address	*/
+  } s;
   u32_t v;
-  struct s_pte s;
-};
+} __attribute__ ((packed));
 typedef union u_pte t_pte;
 
 #define PG_CNT (PG_SIZE / sizeof(t_pde))	/* page entries / page	*/
 
+/*
 //extern const void *PTABLE_ADDR;
 //static t_pde *pd = (t_pde *)PTABLE_ADDR;
+*/
 
 static t_pde *get_pdbr();
 static void set_pdbr(t_pde *pdbr);
@@ -134,20 +134,22 @@ void init_paging() {
   phys_addr = phys_addr + PG_SIZE;
   pt = (t_pte *)((u32_t)pd[(phys_addr & PG_MASK_PD) >> PG_SH_PD].s.pg_frame
     << PG_SH_PT);
-__asm__ __volatile__("nop\n");  //
+__asm__ __volatile__("nop\n");  /* // */
   pt[(phys_addr & PG_MASK_PT) >> PG_SH_PT].v = 0;
   pt[(phys_addr & PG_MASK_PT) >> PG_SH_PT].s.p = PG_P;
   pt[(phys_addr & PG_MASK_PT) >> PG_SH_PT].s.rw = PG_RW;
   pt[(phys_addr & PG_MASK_PT) >> PG_SH_PT].s.us = PG_S;
   pt[(phys_addr & PG_MASK_PT) >> PG_SH_PT].s.pg_frame = phys_addr >> PG_SH_PT;
-__asm__ __volatile__("nop\n");  //
+__asm__ __volatile__("nop\n");  /* // */
 
 
   flush_tlb();
+/*
   // ---------------------------------------------------------------------------
 
 //  pdbr = get_pdbr();
 //  pdbr[0].v = 0;
+*/
   pd = (t_pde *)PDIR_ADDR;
   __asm__ __volatile__(
     "        movl       %0, %%eax	\n"
@@ -161,5 +163,7 @@ __asm__ __volatile__("nop\n");  //
       "m" (phys_addr),
       "m" (pt[(phys_addr & PG_MASK_PT) >> PG_SH_PT].v)
   );
+/*
   // ---------------------------------------------------------------------------
+*/
 }
