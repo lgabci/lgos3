@@ -31,11 +31,6 @@ fi
 AC_SUBST([AM_CFLAGS], ["-std=c89 -ffreestanding -pedantic -Wall -Werror"])
 AC_SUBST([AM_LDFLAGS], ["-nostdlib -static"])
 
-#AC_DEFUN([DDELF], [$OBJDUMP $1])
-AC_SUBST([DDELF], ["${OBJDUMP} \$a"])
-#i686-lgos-objdump -h arch/i386/loader/bootblock/bootblock_mbr.elf | awk '{if ($1 ~ /^[0-9]+$/) {str = $6 " " $4 " " $3; getline; if (/LOAD/) print str}}' | while read skip seek count; do dd if="arch/i386/loader/bootblock/bootblock_mbr.elf" of="arch/i386/emulator/lgos3.img" bs=1 skip=$((0x$skip)) seek=$((0x$seek)) count=$((0x$count)) conv=notrunc iflag=fullblock; done
-
-
 # Checks for libraries.
 
 # Checks for header files.
