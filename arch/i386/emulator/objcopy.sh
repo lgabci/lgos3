@@ -5,6 +5,8 @@ IMG="$1"
 ELF="$2"
 OFFSET=$3
 
+IMGSIZE=100M
+
 if [[ $($AWK --version 2>/dev/null) = GNU* ]]; then
   AWKFLAGS=--non-decimal-data
 fi
@@ -21,7 +23,7 @@ AWKPROG='/^Idx/,0 {
   }
 }'
 
-$OBJDUMP -h "$ELF"
+$DD of=$IMG bs=1 seek=$IMGSIZE count=0 >/dev/null
 $OBJDUMP -h "$ELF" |
   $AWK $AWKFLAGS "$AWKPROG" - |
   while read skip seek count; do
