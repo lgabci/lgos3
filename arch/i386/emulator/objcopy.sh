@@ -28,4 +28,19 @@ $OBJDUMP -h "$ELF" |
   $AWK $AWKFLAGS "$AWKPROG" - |
   while read skip seek count; do
     $DD if=$ELF of=$IMG bs=1 skip=$skip seek=$seek count=$count conv=notrunc
-  done
+  done 2>/dev/null
+
+doas vnconfig -c vnd0 $IMG
+
+doas fdisk -e vnd0 <<EOF
+edit 0
+83
+n
+2048
+20480
+flag 0
+write
+quit
+EOF
+
+doas vnconfig -u vnd0
