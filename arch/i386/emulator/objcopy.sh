@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 set -e
 
 IMG="$1"
@@ -30,9 +30,10 @@ $OBJDUMP -h "$ELF" |
     $DD if=$ELF of=$IMG bs=1 skip=$skip seek=$seek count=$count conv=notrunc
   done 2>/dev/null
 
-doas vnconfig -c vnd0 $IMG
+#doas vnconfig -c vnd0 $IMG
+exit 0
 
-doas fdisk -e vnd0 <<EOF
+fdisk $IMG <<EOF
 edit 0
 83
 n
@@ -43,4 +44,4 @@ write
 quit
 EOF
 
-doas vnconfig -u vnd0
+#doas vnconfig -u vnd0

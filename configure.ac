@@ -18,14 +18,19 @@ AC_CHECK_HEADERS([stdint.h stddef.h stdbool.h])
 AM_PROG_AS
 
 AC_PROG_AWK
-AC_PATH_PROG([DD],[dd])
+AC_CHECK_PROG([DD],[dd],[dd])
 if test x"${DD}" == x; then
   AC_MSG_ERROR([Program not found: dd])
 fi
 
-AC_PATH_TOOL([OBJDUMP], [objdump])
+AC_CHECK_TOOL([OBJDUMP], [objdump])
 if test x"${OBJDUMP}" == x; then
   AC_MSG_ERROR([Program not found: objdump])
+fi
+
+AC_CHECK_TOOL([OBJCOPY], [objcopy])
+if test x"${OBJCOPY}" == x; then
+  AC_MSG_ERROR([Program not found: objcopy])
 fi
 
 AC_SUBST([AM_CFLAGS], ["-std=c89 -ffreestanding -pedantic -Wall -Werror"])
