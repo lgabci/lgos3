@@ -2,13 +2,13 @@
 
 CC := i686-elf-gcc
 CCFLAGS = -c -ffreestanding -nostdinc -O2 -pedantic -Werror -Wall -Wextra
-CCFLAGS += -I$(SRCDIR) -MD -MF $@$(DEXT) -o $@ $<
+CCFLAGS += -I$(MKDIR) -MD -MF $@$(DEXT)
 
 AS := i686-elf-as
-ASFLAGS = -I $(SRCDIR) --MD $@$(DEXT) -o $@ $<
+ASFLAGS = -I $(MKDIR) --MD $@$(DEXT)
 
 LD := $(CC)
-LDFLAGS = -nostdlib -ffreestanding -T $(SRCDIR)/$(@:.elf=.ld)
+LDFLAGS = -nostdlib -ffreestanding -T $(MKDIR)/$(@:.elf=.ld)
 LDFLAGS += -Wl,-Map,$(@:.elf=.map) -o $@ $(filter %.o,$^)
 
 OBJCOPY := i686-elf-objcopy
@@ -24,3 +24,6 @@ QEMUDPAR = cyls=$(HDCYLS),heads=$(HDHEADS),secs=$(HDSECS),format=raw
 QEMU := qemu-system-i386
 QEMUFLAGS = -m 2 $(QEMUDISK),$(QEMUDPAR) -boot order=c -net none -d guest_errors
 QEMUDBFLAGS := -s -S
+
+$(call include,loader/bootblock/makefile.mk)
+$(call include,loader/loader/makefile.mk)
