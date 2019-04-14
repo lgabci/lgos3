@@ -1,7 +1,5 @@
 # i386 boot loader makefile
 
-CCFLAGS += -m16
-
 $(DESTDIR)bootblock_mbr.elf: $(MKDIR)bootblock_mbr.s $(MKDIR)init.inc $(MKDIR)disk.inc $(MKDIR)misc.inc $(MKDIR)video.inc | $(DESTDIR)
 	$(AS) $(ASFLAGS) -o $@ $<
 
