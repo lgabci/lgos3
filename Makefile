@@ -26,10 +26,9 @@ $(eval undefine temp_)
 # $(1) = variable name to pop (using variable_c, variable_0, variable_1, ...)
 pop = \
 $(eval temp_ := $(firstword $(value $(1)_c))) \
+$(eval $(1) := $(if $(temp_),$(value $(temp_)),)) \
 $(eval $(if $(temp_),undefine $(temp_),)) \
 $(eval $(1)_c := $(wordlist 2,$(words $(value $(1)_c)),$(value $(1)_c))) \
-$(eval temp_ := $(firstword $(value $(1)_c))) \
-$(eval $(1) := $(if $(temp_),$(value $(temp_)),)) \
 $(eval $(if $(value $(1)_c),,undefine $(1)_c)) \
 $(eval undefine temp_)
 
@@ -38,14 +37,10 @@ $(eval undefine temp_)
 include = \
 $(call push,MKDIR) \
 $(eval temp_ := $(abspath $(MKDIR)$(1))) \
-$(info *** $(MKDIR)) \
 $(eval MKDIR := $(dir $(temp_))) \
-$(info +++ $(MKDIR)) \
 $(eval include $(temp_)) \
 $(eval undefine temp_) \
-$(info -.. $(MKDIR)) \
-$(call pop,MKDIR) \
-$(info --- $(MKDIR))
+$(call pop,MKDIR)
 
 # set source and destination path
 MKDIRBASE := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
