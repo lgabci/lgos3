@@ -384,5 +384,6 @@ void halt() {
   __asm__ __volatile__ (
     "       jmp     _halt		\n"	/* jump to asm halt	*/
   );
-  __builtin_unreachable();			/* asm noreturn		*/
+//  __builtin_unreachable();			/* asm noreturn		*/
+  while(1) ; //
 }

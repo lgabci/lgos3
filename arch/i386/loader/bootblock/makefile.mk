@@ -1,10 +1,17 @@
 # i386 boot loader makefile
 
-$(DESTDIR)bootblock_mbr.elf: $(MKDIR)bootblock_mbr.s $(MKDIR)init.inc $(MKDIR)disk.inc $(MKDIR)misc.inc $(MKDIR)video.inc | $(DESTDIR)
+.PHONY: bootblock
+bootblock: $(DESTDIR)/bootblock_mbr.elf $(DESTDIR)/bootblock_ext2.elf \
+  $(DESTDIR)/bootblock_fat.elf
+
+-include $(DESTDIR)/bootblock_mbr.elf.d $(DESTDIR)/bootblock_ext2.elf.d \
+  $(DESTDIR)/bootblock_fat.elf.d
+
+$(DESTDIR)/bootblock_mbr.elf: $(SRCDIR)/bootblock_mbr.s | $(DESTDIR)
 	$(AS) $(ASFLAGS) -o $@ $<
 
-#bootblock_ext2.elf: bootblock_ext2.o init.inc disk.inc misc.inc video.inc load.inc
-#bootblock_fat.elf: bootblock_fat.o init.inc disk.inc misc.inc video.inc load.inc
+$(DESTDIR)/bootblock_ext2.elf: $(SRCDIR)/bootblock_ext2.s | $(DESTDIR)
+	$(AS) $(ASFLAGS) -o $@ $<
 
-$(DESTDIR) :
-	mkdir -p $@
+$(DESTDIR)/bootblock_fat.elf: $(SRCDIR)/bootblock_fat.s | $(DESTDIR)
+	$(AS) $(ASFLAGS) -o $@ $<

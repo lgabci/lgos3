@@ -145,7 +145,7 @@ static void writechr(u8_t ch) {
         "c" ((u16_t)0),				/* CX = upper left	*/
         "d" ((u16_t)maxrow << 8 | maxcol),	/* DX = lower right	*/
         [int_video] "i" (INT_VIDEO)
-      : "si", "bp"				/* BIOS bug		*/
+//      : "si", "bp"				/* BIOS bug		*/
     );
   }
 

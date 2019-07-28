@@ -2,13 +2,13 @@
 
 CC := i686-elf-gcc
 CCFLAGS = -c -ffreestanding -nostdinc -O2 -pedantic -Werror -Wall -Wextra
-CCFLAGS += -I$(MKDIR) -MD -MF $@$(DEXT)
+CCFLAGS += -std=c99 -I$(call rs,$(dir $<)) -MD -MF $@$(DEXT)
 
 AS := i686-elf-as
-ASFLAGS = -I $(MKDIR) --MD $@$(DEXT)
+ASFLAGS = -I $(call rs,$(dir $<)) --MD $@$(DEXT)
 
 LD := $(CC)
-LDFLAGS = -nostdlib -ffreestanding -T $(MKDIR)/$(@:.elf=.ld)
+LDFLAGS = -nostdlib -ffreestanding -T $(filter %.ld,$^)
 LDFLAGS += -Wl,-Map,$(@:.elf=.map) -o $@ $(filter %.o,$^)
 
 OBJCOPY := i686-elf-objcopy
@@ -25,5 +25,9 @@ QEMU := qemu-system-i386
 QEMUFLAGS = -m 2 $(QEMUDISK),$(QEMUDPAR) -boot order=c -net none -d guest_errors
 QEMUDBFLAGS := -s -S
 
-$(call include,loader/bootblock/makefile.mk)
-$(call include,loader/loader/makefile.mk)
+
+PHONY: $(_ARCH)
+$(_ARCH): loader
+
+$(call make_include,loader/makefile.mk)
+##$(call make_include,loader/loader/makefile.mk)

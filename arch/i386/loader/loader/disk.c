@@ -336,7 +336,7 @@ static void initdisk(const char *dev) {
         : [int_disk] "i" (INT_DISK),
           "a" ((u16_t)DISK_GETPRM << 8),	/* AH = 0x08		*/
           "d" (disk)				/* DL = drive		*/
-        : "cc", "bl", "di", "si", "bp"
+        : "cc", "bl", "di", "si" //, "bp"
       );
 
       __asm__ __volatile__ (	/* BIOS bug: we must get last status	*/

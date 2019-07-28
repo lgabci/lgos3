@@ -98,5 +98,6 @@ void loadkernel() {
       );
     }
   }
-  __builtin_unreachable();			/* asm noreturn		*/
+//  __builtin_unreachable();			/* asm noreturn		*/
+  while(1) ; //
 }
