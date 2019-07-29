@@ -10,12 +10,10 @@ bootblock: $(DESTDIR)/loader.elf
 
 -include $(DESTDIR)/loader.elf.d
 
-$(DESTDIR)/init.o $(DESTDIR)/console.o \
+OBJS := $(DESTDIR)/init.o $(DESTDIR)/console.o \
   $(DESTDIR)/disk.o $(DESTDIR)/elf.o $(DESTDIR)/ext2.o $(DESTDIR)/fat.o \
-  $(DESTDIR)/lib.o $(DESTDIR)/loader.o $(DESTDIR)/multiboot.o \
-  $(SRCDIR)/loader.ld: | $(DESTDIR)
+  $(DESTDIR)/lib.o $(DESTDIR)/loader.o $(DESTDIR)/multiboot.o
 
-$(DESTDIR)/loader.elf: $(DESTDIR)/init.o $(DESTDIR)/console.o \
-  $(DESTDIR)/disk.o $(DESTDIR)/elf.o $(DESTDIR)/ext2.o $(DESTDIR)/fat.o \
-  $(DESTDIR)/lib.o $(DESTDIR)/loader.o $(DESTDIR)/multiboot.o \
-  $(SRCDIR)/loader.ld
+$(OBJS): | $(DESTDIR)
+
+$(DESTDIR)/loader.elf: $(OBJS) $(SRCDIR)/loader.ld
