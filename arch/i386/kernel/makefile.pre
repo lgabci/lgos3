@@ -1,3 +1,0 @@
-# LGOS3 kernel makefile, pre-dependencies
-
-TARGETS += kernel/kernel.elf

@@ -1,17 +1,19 @@
 # i386 boot loader makefile
+BOOTBLOCK_MBR_ELF := $(DESTDIR)/bootblock_mbr.elf
+BOOTBLOCK_EXT2_ELF := $(DESTDIR)/bootblock_ext2.elf
+BOOTBLOCK_FAT_ELF := $(DESTDIR)/bootblock_fat.elf
+
+-include $(BOOTBLOCK_MBR_ELF).$(DEXT) $(BOOTBLOCK_EXT2_ELF).$(DEXT) \
+  $(BOOTBLOCK_FAT_ELF).$(DEXT)
 
 .PHONY: bootblock
-bootblock: $(DESTDIR)/bootblock_mbr.elf $(DESTDIR)/bootblock_ext2.elf \
-  $(DESTDIR)/bootblock_fat.elf
+bootblock: $(BOOTBLOCK_MBR_ELF) $(BOOTBLOCK_EXT2_ELF) $(BOOTBLOCK_FAT_ELF)
 
--include $(DESTDIR)/bootblock_mbr.elf.d $(DESTDIR)/bootblock_ext2.elf.d \
-  $(DESTDIR)/bootblock_fat.elf.d
-
-$(DESTDIR)/bootblock_mbr.elf: $(SRCDIR)/bootblock_mbr.s | $(DESTDIR)
+$(BOOTBLOCK_MBR_ELF): $(SRCDIR)/bootblock_mbr.s | $(DESTDIR)
 	$(AS) $(ASFLAGS) -o $@ $<
 
-$(DESTDIR)/bootblock_ext2.elf: $(SRCDIR)/bootblock_ext2.s | $(DESTDIR)
+$(BOOTBLOCK_EXT2_ELF): $(SRCDIR)/bootblock_ext2.s | $(DESTDIR)
 	$(AS) $(ASFLAGS) -o $@ $<
 
-$(DESTDIR)/bootblock_fat.elf: $(SRCDIR)/bootblock_fat.s | $(DESTDIR)
+$(BOOTBLOCK_FAT_ELF): $(SRCDIR)/bootblock_fat.s | $(DESTDIR)
 	$(AS) $(ASFLAGS) -o $@ $<

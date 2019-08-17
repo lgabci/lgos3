@@ -25,9 +25,7 @@ QEMU := qemu-system-i386
 QEMUFLAGS = -m 2 $(QEMUDISK),$(QEMUDPAR) -boot order=c -net none -d guest_errors
 QEMUDBFLAGS := -s -S
 
+PHONY: $(ARCH)
+$(ARCH): loader kernel emulator
 
-PHONY: $(_ARCH)
-$(_ARCH): loader
-
-$(call make_include,loader/makefile.mk)
-##$(call make_include,loader/loader/makefile.mk)
+$(call make_include,loader/makefile.mk kernel/makefile.mk emulator/makefile.mk)

@@ -3,14 +3,19 @@
 .SUFFIXES:
 .DELETE_ON_ERROR:
 
+# set OS type
+ifndef OSTYPE
+OSTYPE := $(shell uname -s)
+endif
+
 # set architecture
-ifndef _ARCH
-_ARCH := $(shell uname -m)
-ifneq (,$(filter $(_ARCH),i486 i586 i686))
-_ARCH := i386
+ifndef ARCH
+ARCH := $(shell uname -m)
+ifneq (,$(filter $(ARCH),i486 i586 i686))
+ARCH := i386
 endif
 endif
-export _ARCH
+export ARCH
 
 DEXT := .d
 
@@ -25,7 +30,7 @@ DESTDIR := /tmp/lgos3
 
 MKDIRS := $(DESTDIR)
 
-all: $(_ARCH) | $(DESTDIR)
+all: $(ARCH) | $(DESTDIR)
 
 .PHONY: clean
 clean:
@@ -53,7 +58,7 @@ $(foreach a,$(1),$(eval
 ))
 endef
 
-$(call make_include,arch/$(_ARCH)/makefile.mk)
+$(call make_include,arch/$(ARCH)/makefile.mk)
 
 $(MKDIRS):
 	mkdir -p $@
