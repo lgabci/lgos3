@@ -247,6 +247,7 @@ void vprintf(const char *format, va_list args) {
           break;
         case 'x':
           base = 16;
+          __attribute__ ((fallthrough));
         case 'u':
           switch (type) {
             case 0:

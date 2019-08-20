@@ -3,11 +3,6 @@
 .SUFFIXES:
 .DELETE_ON_ERROR:
 
-# set OS type
-ifndef OSTYPE
-OSTYPE := $(shell uname -s)
-endif
-
 # set architecture
 ifndef ARCH
 ARCH := $(shell uname -m)

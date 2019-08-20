@@ -8,6 +8,7 @@
 extern int bssend;			/* end of bss, from loader.ld	*/
 extern u32_t ramsize;  		/* size of conventional RAM in bytes	*/
 
+
 /*
 64 bit division
 input:	n	numerator (dividend)
@@ -58,6 +59,38 @@ u64_t __umoddi3(u64_t n, u64_t d) {
 
   __udivrem(n, d, &r);
   return r;
+}
+
+/*
+*/
+u64_t __udivmoddi4(u64_t a, u64_t b, u64_t *rem) {
+   u64_t quot = 0, qbit = 1;
+
+  if ( b == 0 ) {
+    return 1/((unsigned)b); /* Intentional divide by zero, without
+				 triggering a compiler warning which
+				 would abort the build */
+  }
+
+  /* Left-justify denominator and count shift */
+  while ( (s64_t)b >= 0 ) {
+    b = b << 1;
+    qbit = qbit << 1;
+  }
+
+  while ( qbit ) {
+    if ( b <= a ) {
+      a = a - b;
+      quot = quot + qbit;
+    }
+    b = b >> 1;
+    qbit = qbit >> 1;
+  }
+
+  if ( rem )
+    *rem = a;
+
+  return quot;
 }
 
 /* create far pointer
