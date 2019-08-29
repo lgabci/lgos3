@@ -8,7 +8,7 @@
 extern int bssend;			/* end of bss, from loader.ld	*/
 extern u32_t ramsize;  		/* size of conventional RAM in bytes	*/
 
-
+#if 0 /////
 /*
 64 bit division
 input:	n	numerator (dividend)
@@ -92,6 +92,7 @@ u64_t __udivmoddi4(u64_t a, u64_t b, u64_t *rem) {
 
   return quot;
 }
+#endif   ////////////////
 
 /* create far pointer
 return far pointer dataseg:offset
