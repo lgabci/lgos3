@@ -6,15 +6,18 @@ HDHEADS := 16
 HDSECS := 63
 HDSECSIZE := 512
 
-HDSIZE := $$(($(HDCYLS) * $(HDHEADS) * $(HDSECS) * $(HDSECSIZE)))
+HDSIZEB := $$(($(HDCYLS) * $(HDHEADS) * $(HDSECS) * $(HDSECSIZE)))
 
 # partition start and size in sectors
 PSTART := 2048
 PSIZE := 20480
+PSTARTB := $$(($(PSTART) * $(HDSECSIZE)))
+PSIZEB := $$(($(PSIZE) * $(HDSECSIZE)))
 
+FDISK := /usr/sbin/fdisk
 PFDISK := o n p 1 $(PSTART) +$(PSIZE) w
-PLOSETUP := -o $$(($(PSTART) * $(HDSECSIZE))) \
---sizelimit $$(($(PSIZE) * $(HDSECSIZE))) --sector-size $(HDSECSIZE)
+
+MKFSEXT2 := /usr/sbin/mkfs.ext2
 
 PQEMU = -machine pc -cpu 486 -boot order=c -m size=2 \
 -drive file=$<,if=ide,index=0,media=disk,format=raw -nic none
@@ -28,18 +31,12 @@ qemu: $(HDIMG)
 
 ## BOOTBLOCK_FAT_ELF
 $(HDIMG): $(BOOTBLOCK_MBR_ELF) $(BOOTBLOCK_EXT2_ELF) $(LOADER_ELF) | $(DESTDIR)
-	dd if=/dev/zero of=$@ bs=1 seek=$(HDSIZE) count=0 status=none
-	echo $(PFDISK) | tr ' ' '\n' | /usr/sbin/fdisk $@ >/dev/null
-	echo CREATE MBR ## TODO
-	sudo losetup $(PLOSETUP) --show -f $@ >$@.losetup
-	sudo mkfs.ext2 $$(cat $@.losetup) >/dev/null
+	dd if=/dev/zero of=$@.ext2 bs=1 seek=$(PSIZEB) count=0 2>/dev/null
+	$(MKFSEXT2) $@.ext2 >/dev/null
 	echo CREATE BOOT ## TODO
-	mkdir -p $@.mount
-	sudo mount $$(cat $@.losetup) $@.mount
-	sudo mkdir -p $@.mount/loader
-	sudo chown $$USER:$$USER $@.mount/loader
-	cp $(word 3,$^) $@.mount/loader/
-	sudo umount $$(cat $@.losetup)
-	sudo losetup -d $$(cat $@.losetup)
-	rmdir $@.mount
-	rm $@.losetup
+	echo COPY boot loader and kernel ## TODO
+	dd if=/dev/zero of=$@ bs=1 seek=$(HDSIZEB) count=0 2>/dev/null
+	echo $(PFDISK) | tr ' ' '\n' | $(FDISK) $@ >/dev/null
+	echo CREATE MBR ## TODO
+	dd if=$@.ext2 of=$@ conv=sparse,notrunc iflag=fullblock 2>/dev/null
+	rm $@.ext2
