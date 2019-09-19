@@ -40,6 +40,7 @@ $(DESTDIR)/%.o: $(SRCDIR)/%.c
 %.elf:
 	$(LD) $(LDFLAGS)
 	chmod -x $@
+	echo $(SRCDIR) " --> " $(DESTDIR)
 
 # macro to include a list of makefiles
 define make_include

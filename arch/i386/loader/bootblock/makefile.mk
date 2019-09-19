@@ -9,11 +9,14 @@ BOOTBLOCK_FAT_ELF := $(DESTDIR)/bootblock_fat.elf
 .PHONY: bootblock
 bootblock: $(BOOTBLOCK_MBR_ELF) $(BOOTBLOCK_EXT2_ELF) $(BOOTBLOCK_FAT_ELF)
 
-$(BOOTBLOCK_MBR_ELF): $(SRCDIR)/bootblock_mbr.s | $(DESTDIR)
+$(BOOTBLOCK_MBR_ELF): $(SRCDIR)/bootblock_mbr.s $(SRCDIR)/bootblock_mbr.ld | $(DESTDIR)
 	$(AS) $(ASFLAGS) -o $@ $<
 
-$(BOOTBLOCK_EXT2_ELF): $(SRCDIR)/bootblock_ext2.s | $(DESTDIR)
+$(DESTDIR)/bootblock_ext2.o: $(SRCDIR)/bootblock_ext2.s | $(DESTDIR)
 	$(AS) $(ASFLAGS) -o $@ $<
+
+$(BOOTBLOCK_EXT2_ELF): $(DESTDIR)/bootblock_ext2.o $(SRCDIR)/bootblock_ext2.ld
+
 
 $(BOOTBLOCK_FAT_ELF): $(SRCDIR)/bootblock_fat.s | $(DESTDIR)
 	$(AS) $(ASFLAGS) -o $@ $<
