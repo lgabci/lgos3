@@ -37,10 +37,13 @@ $(DESTDIR)/%.o: $(SRCDIR)/%.s
 $(DESTDIR)/%.o: $(SRCDIR)/%.c
 	$(CC) $(CCFLAGS) -o $@ $<
 
-%.elf:
+$(DESTDIR)/%.elf:
 	$(LD) $(LDFLAGS)
 	chmod -x $@
 	echo $(SRCDIR) " --> " $(DESTDIR)
+
+$(DESTDIR)/%.bin: $(DESTDIR)/%.elf
+	$(OBJCOPY) $(OBJCOPYFLAGS) $< $@
 
 # macro to include a list of makefiles
 define make_include

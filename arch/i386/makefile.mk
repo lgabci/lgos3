@@ -12,7 +12,7 @@ LDFLAGS = -nostdlib -ffreestanding -T $(filter %.ld,$^)
 LDFLAGS += -Wl,-Map,$(@:.elf=.map) -o $@ $(filter %.o,$^) -lgcc
 
 OBJCOPY := i686-elf-objcopy
-OBJCOPYFLAGS = -O binary $< $@
+OBJCOPYFLAGS = -O binary
 
 OBJDUMP := i686-elf-objdump
 
