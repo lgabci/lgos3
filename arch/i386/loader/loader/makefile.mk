@@ -1,5 +1,6 @@
 # i386 boot loader makefile
 LOADER_ELF := $(DESTDIR)/loader.elf
+LOADER_BIN := $(LOADER_ELF:.elf=.bin)
 
 -include $(LOADER_ELF)$(DEXT)
 
@@ -11,7 +12,8 @@ $(OBJS): | $(DESTDIR)
 
 $(OBJS): CCFLAGS += -m16
 
-.PHONY: bootblock
-bootblock: $(LOADER_ELF)
+loader: $(LOADER_BIN)
+
+$(LOADER_BIN): $(LOADER_ELF)
 
 $(LOADER_ELF): $(OBJS) $(SRCDIR)/loader.ld
