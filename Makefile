@@ -40,7 +40,6 @@ $(DESTDIR)/%.o: $(SRCDIR)/%.c
 $(DESTDIR)/%.elf:
 	$(LD) $(LDFLAGS)
 	chmod -x $@
-	echo $(SRCDIR) " --> " $(DESTDIR)
 
 $(DESTDIR)/%.bin: $(DESTDIR)/%.elf
 	$(OBJCOPY) $(OBJCOPYFLAGS) $< $@
