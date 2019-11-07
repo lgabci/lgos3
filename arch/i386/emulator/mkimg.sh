@@ -20,9 +20,9 @@ function exitfv() {
   fi
 }
 
-if [ $# -ne 4 ]; then
+if [ $# -ne 5 ]; then
     echo usage >&2
-    echo $(basename $0) hdimg mbr.bin boot.bin loader.bin >&2
+    echo $(basename $0) hdimg mbr.bin boot.bin loader.bin kernel.elf >&2
     exit 1
 fi
 
@@ -30,10 +30,11 @@ FILEFRAG=/usr/sbin/filefrag
 
 trap exitfv EXIT
 
-HDIMG="$1"
-MBRBIN="$2"
-BOOTBIN="$3"
-LOADERBIN="$4"
+HDIMG=$1
+MBRBIN=$2
+BOOTBIN=$3
+LOADERBIN=$4
+KERNELELF=$5
 
 HDCYLS=1023
 HDHEADS=16
@@ -47,10 +48,22 @@ PSIZE=20480
 PSTARTB=$((PSTART * HDSECSIZE))
 PSIZEB=$((PSIZE * HDSECSIZE))
 
+HDDEV=hda0
+HDPATH=boot
+LDRCFG=loader.cfg
+
 # root for filesystem
 TMPDIR=$(mktemp -d)
-mkdir $TMPDIR/boot
-cp $LOADERBIN $TMPDIR/boot
+mkdir -p $TMPDIR/$HDPATH
+cp $LOADERBIN $KERNELELF $TMPDIR/$HDPATH
+
+TMPA=$(mktemp)
+TMPB=$(mktemp)
+
+$OBJDUMP -t ${LOADERBIN%.*}.elf >$TMPA
+POS=$(awk '$1 ~ /^[0-9a-fA-F]+$/ && $(NF) == "ldrcfgpath" {print $1}' $TMPA)
+POS=$((0x$POS))
+printf "%s\x00" $HDDEV:/$HDPATH/$LDRCFG | dd of=$TMPDIR/$HDPATH/$(basename $LOADERBIN) bs=1 seek=$POS conv=notrunc iflag=fullblock 2>/dev/null
 
 # create filesystem
 dd if=/dev/zero of=$HDIMG.ext2 bs=$HDSECSIZE seek=$PSIZE count=0 2>/dev/null
@@ -75,8 +88,6 @@ MOUNTDIR=$(udisksctl mount --block-device $LOOPDEV)
 MOUNTDIR=$(echo $MOUNTDIR | sed -e 's/.* //;s/\.//')
 
 # create blocklist and write into the filesystem after boot sector
-TMPA=$(mktemp)
-TMPB=$(mktemp)
 $FILEFRAG -b$HDSECSIZE -e $MOUNTDIR/boot/${LOADERBIN##*/} >$TMPA
 awk 'BEGIN {
        FS="[:. ]+"
@@ -99,7 +110,9 @@ if [ -z "$FSIZE" ] || [ $FSIZE -gt $HDSECSIZE ]; then
 fi
 dd if=$TMPA of=$HDIMG bs=512 seek=$((PSTART + 1)) conv=notrunc iflag=fullblock 2>/dev/null
 
-
 # write bootlist address into boot sector code
-i686-elf-objdump -t ${BOOTBIN%.*}.elf >$TMPA
-awk '$1 ~ /^[0-9a-fA-F]+$/ && $(NF) == "ldrblk" {printf "%u", "0x"$1}' $TMPA
+$OBJDUMP -t ${BOOTBIN%.*}.elf >$TMPA
+POS=$(awk '$1 ~ /^[0-9a-fA-F]+$/ && $(NF) == "ldrblk" {print $1}' $TMPA)
+POS=$((0x$POS))
+PSTARTV=$(printf "\\\\x%02x\\\\x%02x\\\\x%02x\\\\x%02x" $(((PSTART + 1) % 256)) $(((PSTART + 1) / 256 % 256)) $(((PSTART + 1) / 256 / 256 % 256)) $(((PSTART + 1) / 256 / 256 / 256 % 256)))
+echo -n -e $PSTARTV | dd of=$HDIMG bs=1 seek=$((PSTARTB + POS)) conv=notrunc iflag=fullblock 2>/dev/null
