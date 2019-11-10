@@ -12,11 +12,21 @@ endif
 endif
 export ARCH
 
-DEXT := .d
+DEXT := d
 
 # macro to remove last slash from a path
 define rs
 $(patsubst %/,%,$(1))
+endef
+
+# macro to change $(DESTDIR) into $(SRCDIR) in path
+define dest2src
+$(patsubst $(DESTDIR)%,$(SRCDIR)%,$(1))
+endef
+
+# macro to get .ld path (using in LDFLAGS)
+define ldfile
+$(call dest2src,$(basename $@)).ld
 endef
 
 # set source and destination path
@@ -54,6 +64,12 @@ $(foreach a,$(1),$(eval
   SRCDIR := $(SRCDIR)
   DESTDIR := $(DESTDIR)
 ))
+endef
+
+# macro to add $(DESTDIR) prefix to .o files and -include .o.d
+define addpref
+$(eval $(1) := $(addprefix $(DESTDIR)/,$(value $(1))))
+$(eval -include $(addsuffix .$(DEXT),$(value $(1))))
 endef
 
 $(call make_include,arch/$(ARCH)/makefile.mk)

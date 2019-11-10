@@ -2,14 +2,13 @@
 
 CC := i686-elf-gcc
 CCFLAGS = -c -ffreestanding -nostdinc -O2 -pedantic -Werror -Wall -Wextra
-CCFLAGS += -std=c99 -I$(call rs,$(dir $<)) -MD -MF $@$(DEXT)
+CCFLAGS += -std=c99 -I$(call rs,$(dir $<)) -MD -MF $@.$(DEXT)
 
 AS := i686-elf-as
-ASFLAGS = -I $(call rs,$(dir $<)) --MD $@$(DEXT)
+ASFLAGS = -I $(call rs,$(dir $<)) --MD $@.$(DEXT)
 
 LD := $(CC)
-LDFLAGS = -nostdlib -ffreestanding -T $(filter %.ld,$^)
-LDFLAGS += -o $@ $(filter %.o,$^) -lgcc
+LDFLAGS = -nostdlib -ffreestanding -T $(call ldfile) -o $@ $^ -lgcc
 
 OBJCOPY := i686-elf-objcopy
 OBJCOPYFLAGS = -O binary
