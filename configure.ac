@@ -5,19 +5,19 @@ AC_PREREQ([2.69])
 AC_INIT([lgos3], [0.0.1], [])
 
 AC_CONFIG_SRCDIR([arch/i386/kernel/initc.c])
-AC_CONFIG_HEADERS([config.h])
+##AC_CONFIG_HEADERS([config.h])
 AM_INIT_AUTOMAKE([-Wall -Werror foreign])
 
 # Checks for programs.
 AC_PROG_CC([gcc])
-AC_PROG_CPP
 AC_LANG([C])
-AC_HEADER_STDC
-AC_CHECK_HEADERS([stdint.h stddef.h stdbool.h])
+#AC_HEADER_STDC
+#AC_CHECK_HEADERS([stdint.h stddef.h stdbool.h])
 
 AM_PROG_AS
 
 AC_PROG_AWK
+
 AC_CHECK_PROG([DD],[dd],[dd])
 if test x"${DD}" == x; then
   AC_MSG_ERROR([Program not found: dd])
@@ -28,11 +28,6 @@ if test x"${OBJDUMP}" == x; then
   AC_MSG_ERROR([Program not found: objdump])
 fi
 
-AC_CHECK_TOOL([OBJCOPY], [objcopy])
-if test x"${OBJCOPY}" == x; then
-  AC_MSG_ERROR([Program not found: objcopy])
-fi
-
 AC_SUBST([AM_CFLAGS], ["-std=c89 -ffreestanding -pedantic -Wall -Werror"])
 AC_SUBST([AM_LDFLAGS], ["-nostdlib -static"])
 
@@ -41,11 +36,11 @@ AC_SUBST([AM_LDFLAGS], ["-nostdlib -static"])
 # Checks for header files.
 
 # Checks for typedefs, structures, and compiler characteristics.
-#AC_TYPE_SIZE_T
+##AC_TYPE_SIZE_T
 
 # Checks for library functions.
-#AC_FUNC_MALLOC
-#AC_CHECK_FUNCS([memset strchr])
+##AC_FUNC_MALLOC
+##AC_CHECK_FUNCS([memset strchr])
 
 AC_CONFIG_FILES([Makefile
                  arch/i386/kernel/Makefile

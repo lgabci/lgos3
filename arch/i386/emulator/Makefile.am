@@ -1,10 +1,6 @@
-noinst_DATA = lgos3.img
+noinst_PROGRAMS = lgos3.img
 
-CLEANFILES = lgos3.img
+lgos3_img_SOURCES =
+lgos3_img_DEPENDENCIES = ../loader/bootblock/bootblock_mbr.bin ../loader/bootblock/bootblock_ext2.bin ../loader/loader/loader.bin ../kernel/kernel.elf
 
-imgsize = 100M
-mbr = ../loader/bootblock/bootblock_mbr.elf
-
-lgos3_img_SOURCES = a
-#lgos3.img: $(mbr)
-#	OBJDUMP=$(OBJDUMP) AWK=$(AWK) DD=$(DD) $(srcdir)/objcopy.sh $@ $(mbr) 0
+lgos3_img_LINK = $(srcdir)/mkimg.sh $@ $^
