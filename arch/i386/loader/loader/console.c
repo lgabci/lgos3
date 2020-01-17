@@ -214,13 +214,11 @@ void vprintf(const char *format, va_list args) {
   int percent;
   int len;
   u8_t padchr;
-  u8_t base;
   int type;
   int stringlen;
   char *str;
 
   percent = FALSE;
-  base = 10;
   padchr = ' ';
   len = 0;
   type = 0;
@@ -246,17 +244,16 @@ void vprintf(const char *format, va_list args) {
           percent = FALSE;
           break;
         case 'x':
-          base = 16;
         case 'u':
           switch (type) {
             case 0:
-              writenum(VA_ARG(args, u16_t), base, len, padchr);
+              writenum(VA_ARG(args, u16_t), *format == 'u' ? 10 : 16, len, padchr);
               break;
             case 1:
-              writenum(VA_ARG(args, u32_t), base, len, padchr);
+              writenum(VA_ARG(args, u32_t), *format == 'u' ? 10 : 16, len, padchr);
               break;
             case 2:
-              writenum(VA_ARG(args, u64_t), base, len, padchr);
+              writenum(VA_ARG(args, u64_t), *format == 'u' ? 10 : 16, len, padchr);
               break;
           }
           percent = FALSE;
@@ -290,7 +287,6 @@ void vprintf(const char *format, va_list args) {
           break;
       }
       if (! percent) {
-        base = 10;
         padchr = ' ';
         len = 0;
         type = 0;
