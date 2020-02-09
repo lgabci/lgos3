@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 # LGOS disk image generator script
 
 set -eu
@@ -16,6 +16,8 @@ if [ $# -ne 8 ]; then
   exit 1
 fi
 
+unset DELFILES
+
 IMG="$1"
 MBR="$2"
 BB="$3"
@@ -29,11 +31,14 @@ SECSIZE=512     # block size on disk
 PSTART=2048     # start of partition
 BOOTDIR="boot"  # boot directory on disk
 
-function umountfv() {
+umountfv() {
   err=$?
   trap '' EXIT INT TERM ERR
 
-  rm -f "$IMG.frag"
+  for f in "${DELFILES[@]}"; do
+    rm -rf "$f"
+  done
+
   if [ -n "${loopdev-}" ]; then
     if findmnt "$loopdev" >/dev/null; then
       udisksctl unmount --block-device "$loopdev" --no-user-interaction >/dev/null || true
@@ -54,14 +59,14 @@ esac
 
 # create image file
 rm -f "$IMG"
-dd if=/dev/zero of="$IMG" bs="$SIZE" count=0 seek=1 iflag=fullblock status=none
+dd if=/dev/zero of="$IMG" bs="$SIZE" count=0 seek=1 status=none
 
 # create file system
 case "$TYPE" in
   ext2)
+    DELFILES+=("$OUTDIR/$BOOTDIR/")
     mkdir -p "$OUTDIR/$BOOTDIR/$BOOTDIR/"
     /sbin/mkfs.ext2 -d "$OUTDIR/boot" -q "$IMG"
-    rm -rf "$OUTDIR/$BOOTDIR/"
     ;;
   fat)
     /sbin/mkfs.vfat "$IMG" >/dev/null
@@ -82,7 +87,9 @@ cp "$LDR" "$mountdir/$BOOTDIR/"
 cp "$KERN" "$mountdir/$BOOTDIR/"
 
 # create loader file blocklist for bootblock
+DELFILES+=("$IMG.frag")
 /usr/sbin/filefrag -b$SECSIZE -e -s "$mountdir/$BOOTDIR/$(basename $LDR)" >"$IMG.frag"
+DELFILES+=("$IMG.bl")
 awk -F '[ :.]+' \
     '{
        gsub(/^ +/, "");
@@ -90,24 +97,26 @@ awk -F '[ :.]+' \
          print $4 " " $5
        }
      }' "$IMG.frag" | \
-while read a b; do
-  seq $a $b | xargs printf '%08x'
-done | xxd -r -p >"$IMG.bl"
+  while read a b; do
+    seq $a $b | xargs printf '%08x'
+  done | tac -rs .. | xxd -r -p >"$IMG.bl"
 
 # copy blocklist to image file
 case "$TYPE" in
   ext2)
-    dd if="$IMG.bl" of="$IMG" bs=$SECSIZE seek=1 conv=notrunc iflag=fullblock status=none
-    mkdir -p "$OUTDIR/$BOOTDIR/$BOOTDIR/"
-    /sbin/mkfs.ext2 -d "$OUTDIR/boot" -q "$IMG"
-    rm -rf "$OUTDIR/$BOOTDIR/"
+    dd if="$IMG.bl" of="$IMG" bs=$SECSIZE seek=1 conv=notrunc status=none
+    BLPOS=$((PSTART + 1))
     ;;
   fat)
     exit 1 ##
     ;;
 esac
 
-
+# set blocklist block number
+ldrblk=$(i686-elf-objdump -t "${BB%.bin}.elf" | grep ldrblk)
+ldrblk=$(echo "$ldrblk" | awk '{print $1}')
+printf '%08x' $BLPOS | tac -rs .. | xxd -r -p | \
+  dd of="$IMG" bs=1 seek=$((0x$ldrblk)) conv=notrunc status=none
 
 # umount filesystem
 umountfv
@@ -115,7 +124,7 @@ umountfv
 # add bootblock to filesystem
 case "$TYPE" in
   ext2)
-    dd if="$BB" of="$IMG" conv=notrunc iflag=fullblock status=none
+    dd if="$BB" of="$IMG" conv=notrunc status=none
     ;;
   fat)
     ##
@@ -124,9 +133,7 @@ esac
 
 # add MBR code to the image
 if [ -n "$MBR" ]; then
-  dd if="$IMG" of="$IMG-mbr" bs=$SECSIZE seek=$PSTART iflag=fullblock \
-    conv=sparse status=none
-  dd if="$MBR" of="$IMG-mbr" iflag=fullblock conv=notrunc status=none
+  dd if="$IMG" of="$IMG-mbr" bs=$SECSIZE seek=$PSTART conv=sparse status=none
   mv "$IMG-mbr" "$IMG"
 
   case "$TYPE" in
