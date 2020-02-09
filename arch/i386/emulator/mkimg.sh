@@ -134,6 +134,7 @@ esac
 # add MBR code to the image
 if [ -n "$MBR" ]; then
   dd if="$IMG" of="$IMG-mbr" bs=$SECSIZE seek=$PSTART conv=sparse status=none
+  dd if="$MBR" of="$IMG-mbr" conv=notrunc status=none
   mv "$IMG-mbr" "$IMG"
 
   case "$TYPE" in
