@@ -16,8 +16,6 @@ if [ $# -ne 8 ]; then
   exit 1
 fi
 
-unset DELFILES
-
 IMG="$1"
 MBR="$2"
 BB="$3"
@@ -31,13 +29,11 @@ SECSIZE=512     # block size on disk
 PSTART=2048     # start of partition
 BOOTDIR="boot"  # boot directory on disk
 
-umountfv() {
+exitfv() {
   err=$?
-  trap '' EXIT INT TERM ERR
+  trap '' EXIT INT TERM
 
-  for f in "${DELFILES[@]}"; do
-    rm -rf "$f"
-  done
+  rm -rf "$OUTDIR/$BOOTDIR/" "$IMG.frag" "$IMG.bl"
 
   if [ -n "${loopdev-}" ]; then
     if findmnt "$loopdev" >/dev/null; then
@@ -47,12 +43,13 @@ umountfv() {
   fi
   exit $err
 }
-trap umountfv EXIT INT TERM ERR
+trap exitfv EXIT INT TERM
 
 case "$TYPE" in
   fat|ext2)
     ;;
   *)
+    echo "Unknown filesystem: $TYPE" >&2
     exit 1;
     ;;
 esac
@@ -64,7 +61,6 @@ dd if=/dev/zero of="$IMG" bs="$SIZE" count=0 seek=1 status=none
 # create file system
 case "$TYPE" in
   ext2)
-    DELFILES+=("$OUTDIR/$BOOTDIR/")
     mkdir -p "$OUTDIR/$BOOTDIR/$BOOTDIR/"
     /sbin/mkfs.ext2 -d "$OUTDIR/boot" -q "$IMG"
     ;;
@@ -87,9 +83,7 @@ cp "$LDR" "$mountdir/$BOOTDIR/"
 cp "$KERN" "$mountdir/$BOOTDIR/"
 
 # create loader file blocklist for bootblock
-DELFILES+=("$IMG.frag")
 /usr/sbin/filefrag -b$SECSIZE -e -s "$mountdir/$BOOTDIR/$(basename $LDR)" >"$IMG.frag"
-DELFILES+=("$IMG.bl")
 awk -F '[ :.]+' \
     '{
        gsub(/^ +/, "");
@@ -112,15 +106,6 @@ case "$TYPE" in
     ;;
 esac
 
-# set blocklist block number
-ldrblk=$(i686-elf-objdump -t "${BB%.bin}.elf" | grep ldrblk)
-ldrblk=$(echo "$ldrblk" | awk '{print $1}')
-printf '%08x' $BLPOS | tac -rs .. | xxd -r -p | \
-  dd of="$IMG" bs=1 seek=$((0x$ldrblk)) conv=notrunc status=none
-
-# umount filesystem
-umountfv
-
 # add bootblock to filesystem
 case "$TYPE" in
   ext2)
@@ -130,6 +115,15 @@ case "$TYPE" in
     ##
     ;;
 esac
+
+# set blocklist block number
+ldrblk=$(i686-elf-objdump -t "${BB%.bin}.elf" | grep ldrblk)
+ldrblk=$(echo "$ldrblk" | awk '{print $1}')
+printf '%08x' $BLPOS | tac -rs .. | xxd -r -p | \
+  dd of="$IMG" bs=1 seek=$((0x$ldrblk)) conv=notrunc status=none
+
+# umount filesystem
+exitfv
 
 # add MBR code to the image
 if [ -n "$MBR" ]; then
