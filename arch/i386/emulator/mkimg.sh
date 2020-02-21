@@ -45,6 +45,40 @@ exitfv() {
 }
 trap exitfv EXIT INT TERM
 
+createfs() {
+  # create image file
+  rm -f "$IMG"
+  dd if=/dev/zero of="$IMG" bs="$SIZE" count=0 seek=1 status=none
+
+  # create file system
+  case "$TYPE" in
+    ext2)
+      mkdir -p "$OUTDIR/$BOOTDIR/$BOOTDIR/"
+      /sbin/mkfs.ext2 -d "$OUTDIR/boot" -q "$IMG"
+      ;;
+    fat)
+      /sbin/mkfs.vfat "$IMG" >/dev/null
+      ;;
+  esac
+}
+
+mountfs() {
+  # mount file system
+  loopdev=$(udisksctl loop-setup --file "$IMG" --no-user-interaction)
+  loopdev=${loopdev##* }
+  loopdev=${loopdev%%.*}
+  mountdir=$(udisksctl mount --block-device "$loopdev" --no-user-interaction)
+  mountdir=${mountdir##* }
+  mountdir=${mountdir%%.*}
+}
+
+copyfiles() {
+  # copy loader and kernel to image
+  mkdir -p "$mountdir/$BOOTDIR/"
+  cp "$LDR" "$mountdir/$BOOTDIR/"
+  cp "$KERN" "$mountdir/$BOOTDIR/"
+}
+
 case "$TYPE" in
   fat|ext2)
     ;;
@@ -55,32 +89,13 @@ case "$TYPE" in
 esac
 
 # create image file
-rm -f "$IMG"
-dd if=/dev/zero of="$IMG" bs="$SIZE" count=0 seek=1 status=none
-
-# create file system
-case "$TYPE" in
-  ext2)
-    mkdir -p "$OUTDIR/$BOOTDIR/$BOOTDIR/"
-    /sbin/mkfs.ext2 -d "$OUTDIR/boot" -q "$IMG"
-    ;;
-  fat)
-    /sbin/mkfs.vfat "$IMG" >/dev/null
-    ;;
-esac
+createfs
 
 # mount file system
-loopdev=$(udisksctl loop-setup --file "$IMG" --no-user-interaction)
-loopdev=${loopdev##* }
-loopdev=${loopdev%%.*}
-mountdir=$(udisksctl mount --block-device "$loopdev" --no-user-interaction)
-mountdir=${mountdir##* }
-mountdir=${mountdir%%.*}
+mountfs
 
 # copy loader and kernel to image
-mkdir -p "$mountdir/$BOOTDIR/"
-cp "$LDR" "$mountdir/$BOOTDIR/"
-cp "$KERN" "$mountdir/$BOOTDIR/"
+copyfiles
 
 # create loader file blocklist for bootblock
 /usr/sbin/filefrag -b$SECSIZE -e -s "$mountdir/$BOOTDIR/$(basename $LDR)" >"$IMG.frag"
