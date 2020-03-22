@@ -76,12 +76,10 @@
 	ljmp	$0, $BIOSSEG << 4	# jump to bootsector
 
 .include "disk.inc"
-.include "misc.inc"
-.include "video.inc"
 
 .section .data	# ------------------------------------------------------------
 initstr:    .string "MBR\r\n"
-invptstr:   .string "Invld part table."
+invptstr:   .string "Invld part ta."    ## TODO
 invbsstr:   .string "Invld boot sector."
 
 .section .bss	# ------------------------------------------------------------

@@ -9,7 +9,7 @@ MEMORY {
 }
 
 SECTIONS {
-  .text : {
+  .text : ALIGN(1) {
     *(.text)
   } >ram
 
@@ -24,5 +24,6 @@ SECTIONS {
 
   .bss : {
     *(.bss)
+    *(COMMON)
   } >bss
 }

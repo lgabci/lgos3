@@ -11,11 +11,11 @@ MEMORY {
 
 SECTIONS {
   /* jump over FAT BPB */
-  .itext : {
+  .itext : ALIGN(1) {
     *(.itext)
   } >iram
 
-  .text : {
+  .text : ALIGN(1) {
     *(.text)
   } >ram
 
@@ -30,5 +30,6 @@ SECTIONS {
 
   .bss : {
     *(.bss)
+    *(COMMON)
   } >bss
 }

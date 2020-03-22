@@ -11,9 +11,7 @@
 	call	load_ldr_2nd		# load and run 2nd stage loader
 
 .include "disk.inc"
-.include "misc.inc"
-.include "video.inc"
 .include "load.inc"
 
 .section .data	# -------------------------------------------------------------
-initstr:    .string "boot sector\r\n"
+initstr:    .string "boot\r\n"  ## TODO boot sector\r\n
