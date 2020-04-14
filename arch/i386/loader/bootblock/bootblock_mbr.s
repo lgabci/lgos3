@@ -1,9 +1,9 @@
 # LGOS3 loader boot block for MBR
 .arch i8086
 .code16
-
-.include "init.inc"
-
+## TODO remove .equ BIOSSEG from here
+.equ BIOSSEG, 0x07c0
+        
 .equ PTADDR,	0x1be			# partition table address
 .equ PTENUM,	0x04			# number of partition entries
 .equ PTESZ,	0x10			# partition entry size
@@ -79,6 +79,7 @@
 	ljmp	$0, $BIOSSEG << 4	# jump to bootsector
 
 .section .data	# ------------------------------------------------------------
+.globl initstr
 initstr:    .string "MBR\r\n"
 invptstr:   .string "Invld part ta."    ## TODO
 invbsstr:   .string "Invld boot sector."

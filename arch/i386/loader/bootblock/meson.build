@@ -1,52 +1,37 @@
 # LGOS3 loader/bootblock file
 
 bootblock_mbr = executable('bootblock_mbr.elf',
-  'bootblock_mbr.s', 'display.s', 'misc.s', 'disk.s',
-  c_args: [ '-Wa,-I,' + meson.current_source_dir()
-          ],
-  link_args: [ '-T',
-               meson.current_source_dir() +
-               
-                                        '/bootblock_mbr.ld'
-                                      ]
-                          )
+  'bootblock_mbr.s', 'display.s', 'misc.s', 'disk.s', 'init.s',
+  c_args: [ '-Wa,-I,' + meson.current_source_dir() ],
+  link_args: [ '-T', meson.current_source_dir() + '/bootblock_mbr.ld' ]
+)
 
 bootblock_mbr_bin = custom_target('bootblock_mbr.bin',
-                                  output: 'bootblock_mbr.bin',
-                                  input: bootblock_mbr,
-                                  command: [objcopy, '-O', 'binary', '@INPUT@', '@OUTPUT@']
-                                 )
+  output: 'bootblock_mbr.bin',
+  input: bootblock_mbr,
+  command: [objcopy, '-O', 'binary', '@INPUT@', '@OUTPUT@']
+)
 
 bootblock_ext2 = executable('bootblock_ext2.elf',
-                            'bootblock_ext2.s', 'display.s', 'misc.s', 'disk.s',
-                            'load.s',
-                           c_args: [ '-Wa,-I,' + meson.current_source_dir()
-                                   ],
-                           link_args: [ '-T',
-                                        meson.current_source_dir() +
-                                        '/bootblock_ext2.ld'
-                                      ]
-                           )
+  'bootblock_ext2.s', 'display.s', 'misc.s', 'disk.s', 'load.s', 'init.s',
+  c_args: [ '-Wa,-I,' + meson.current_source_dir() ],
+  link_args: [ '-T', meson.current_source_dir() + '/bootblock_ext2.ld' ]
+)
 
 bootblock_ext2_bin = custom_target('bootblock_ext2.bin',
-                                   output: 'bootblock_ext2.bin',
-                                   input: bootblock_ext2,
-                                   command: [objcopy, '-O', 'binary', '@INPUT@', '@OUTPUT@']
-                                  )
+  output: 'bootblock_ext2.bin',
+  input: bootblock_ext2,
+  command: [objcopy, '-O', 'binary', '@INPUT@', '@OUTPUT@']
+)
 
 bootblock_fat = executable('bootblock_fat.elf',
-                           'bootblock_fat.s', 'display.s', 'misc.s', 'disk.s',
-                           'load.s',
-                           c_args: [ '-Wa,-I,' + meson.current_source_dir()
-                                   ],
-                           link_args: [ '-T',
-                                        meson.current_source_dir() +
-                                        '/bootblock_fat.ld'
-                                      ]
-                          )
+  'bootblock_fat.s', 'display.s', 'misc.s', 'disk.s', 'load.s', 'init.s',
+  c_args: [ '-Wa,-I,' + meson.current_source_dir() ],
+  link_args: [ '-T', meson.current_source_dir() + '/bootblock_fat.ld' ]
+)
 
 bootblock_fat_bin = custom_target('bootblock_fat.bin',
-                                  output: 'bootblock_fat.bin',
-                                  input: bootblock_fat,
-                                  command: [objcopy, '-O', 'binary', '@INPUT@', '@OUTPUT@']
-                                 )
+  output: 'bootblock_fat.bin',
+  input: bootblock_fat,
+  command: [objcopy, '-O', 'binary', '@INPUT@', '@OUTPUT@']
+)
