@@ -1,11 +1,13 @@
 # LGOS3 loader/bootblock file
 
 bootblock_mbr = executable('bootblock_mbr.elf',
-                           'bootblock_mbr.s', 'display.s', 'misc.s',
-                           c_args: [ '-Wa,-I,' + meson.current_source_dir()
-                                   ],
-                           link_args: [ '-T',
-                                        meson.current_source_dir() + '/bootblock_mbr.ld'
+  'bootblock_mbr.s', 'display.s', 'misc.s', 'disk.s',
+  c_args: [ '-Wa,-I,' + meson.current_source_dir()
+          ],
+  link_args: [ '-T',
+               meson.current_source_dir() +
+               
+                                        '/bootblock_mbr.ld'
                                       ]
                           )
 
@@ -16,11 +18,13 @@ bootblock_mbr_bin = custom_target('bootblock_mbr.bin',
                                  )
 
 bootblock_ext2 = executable('bootblock_ext2.elf',
-                           'bootblock_ext2.s', 'display.s', 'misc.s',
+                            'bootblock_ext2.s', 'display.s', 'misc.s', 'disk.s',
+                            'load.s',
                            c_args: [ '-Wa,-I,' + meson.current_source_dir()
                                    ],
                            link_args: [ '-T',
-                                        meson.current_source_dir() + '/bootblock_ext2.ld'
+                                        meson.current_source_dir() +
+                                        '/bootblock_ext2.ld'
                                       ]
                            )
 
@@ -31,11 +35,13 @@ bootblock_ext2_bin = custom_target('bootblock_ext2.bin',
                                   )
 
 bootblock_fat = executable('bootblock_fat.elf',
-                           'bootblock_fat.s', 'display.s', 'misc.s',
+                           'bootblock_fat.s', 'display.s', 'misc.s', 'disk.s',
+                           'load.s',
                            c_args: [ '-Wa,-I,' + meson.current_source_dir()
                                    ],
                            link_args: [ '-T',
-                                        meson.current_source_dir() + '/bootblock_fat.ld'
+                                        meson.current_source_dir() +
+                                        '/bootblock_fat.ld'
                                       ]
                           )
 

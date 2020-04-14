@@ -1,4 +1,6 @@
 # LGOS3 loader boot block, disk
+.arch i8086
+.code16
 
 .equ	INT_DISK,	0x13		# disk interrupt
 .equ	DISK_RESET,	0x00		# reset disk
@@ -12,6 +14,7 @@
 
 .section .text	# --------------------------------------------------------------
 
+.global disk_getprm
 disk_getprm:	# --------------------------------------------------------------
 # get disk parameters
 # IN:	-
@@ -55,8 +58,9 @@ disk_getprm:	# --------------------------------------------------------------
 
 	ret
 
+.global readsector
 readsector:	# --------------------------------------------------------------
-## rewrite
+## TODO rewrite
 # read sector, using readsector_chs, halt on error
 # IN:	DX:AX: LBA number of sector to read
 #	BX: segment adress (offset always zero)
@@ -90,6 +94,7 @@ readsector:	# --------------------------------------------------------------
 
 	movb	%dl, %dh		# DH = head number
 
+.globl readsector_chs
 readsector_chs:	# --------------------------------------------------------------
 # read sector - CHS, halt on error
 # IN:	CX: cylinder and sector number
@@ -170,6 +175,8 @@ ioerrstr:	.string	"I/O err"
 geomerrstr:	.string	"Geom. err"
 
 .section .bss	# --------------------------------------------------------------
+## TODO remove .global drive from here
+.globl drive
 .lcomm	drive, 1			# BIOS boot disk ID (0x00 / 0x80, ...)
 
 	# the next 3 field must be in this order

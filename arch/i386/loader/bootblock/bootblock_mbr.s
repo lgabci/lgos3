@@ -1,4 +1,7 @@
 # LGOS3 loader boot block for MBR
+.arch i8086
+.code16
+
 .include "init.inc"
 
 .equ PTADDR,	0x1be			# partition table address
@@ -74,8 +77,6 @@
 	movw	%si, %bp		# DS:SI and DS:BP -> part table entry
 	movb	(%si), %dl		# boot drive (boot status from pt)
 	ljmp	$0, $BIOSSEG << 4	# jump to bootsector
-
-.include "disk.inc"
 
 .section .data	# ------------------------------------------------------------
 initstr:    .string "MBR\r\n"

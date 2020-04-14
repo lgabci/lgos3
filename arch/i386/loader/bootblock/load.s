@@ -1,4 +1,11 @@
 # LGOS3 loader boot block, loader rutins
+.arch i8086
+.code16
+
+## TODO remove from here
+.equ BBSEG, 0x0060
+.equ SECSIZE, 512
+
 
 .equ LDOFF, 0x400				# blocklist offset address
 .equ LDSEG, (BBSEG + LDOFF >> 4)
@@ -9,6 +16,7 @@
 
 .section .text	# --------------------------------------------------------------
 
+.global load_ldr_2nd
 load_ldr_2nd:	# --------------------------------------------------------------
 # load 2nd stage loader
 # IN:	-
