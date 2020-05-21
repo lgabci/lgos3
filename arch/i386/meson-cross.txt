@@ -9,10 +9,6 @@ objcopy = 'i686-elf-objcopy'
 strip = 'i686-elf-strip'
 
 [properties]
-c_args = ['-ffreestanding', '-O2', '-pedantic', '-Werror', '-Wall', '-Wextra',
-          '-std=gnu99', '-Wa,--fatal-warnings'
-         ]
-c_link_args = ['-nostdlib', '-lgcc', '-Wl,--fatal-warnings']
 
 [host_machine]
 system = 'lgos3'

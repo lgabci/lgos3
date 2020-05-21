@@ -78,7 +78,7 @@ readsector:
         test    %dx, %dx                # DX = 0?, cyl must fit in 10 bits
         jnz     geomerror
         cmpw    %ax, (cylnum)           # AX = cylinder
-        jae     geomerror
+        jb      geomerror
         xchgb   %ah, %al
         rorb    %al
         rorb    %al
@@ -95,13 +95,13 @@ readsector_chs:
 # OUT:  memory, halt on error
 # MOD:  AX, DL, DI, flags
         cmpb    %dh, (headnum)          # test head: 0 .. headnum - 1
-        jae     geomerror
+        jb      geomerror
 
         movb    %cl, %al                # test sector: 1 .. secnum
         andb    $0x3f, %al
         jz      geomerror
         cmpb    %al, (secnum)
-        ja      geomerror
+        jbe     geomerror
 
         movw    %cx, %ax                # test cylinder: 0 .. cylnum - 1
         rolb    %al
@@ -109,7 +109,7 @@ readsector_chs:
         andb    $0x02, %al
         xchgb   %ah, %al
         cmpw    %ax, (cylnum)
-        jae     geomerror
+        jb      geomerror
 
         movw    $DISK_RETRY, %di        # DI = error counter
 1:      movw    $DISK_READ << 8 | 1, %ax        # disk read, 1 sector
