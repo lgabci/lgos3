@@ -3,16 +3,16 @@
 #include "lib.h"
 #include "console.h"
 
-#define	MAXNUMLEN	20			/* max. number digits */
+#define         MAXNUMLEN       20                      /* max. number digits */
 
-#define	INT_VIDEO	0x10			/* video interrupt */
+#define         INT_VIDEO       0x10                    /* video interrupt */
 
-#define	VID_SETCURPOS	0x2			/* set cursor position */
-#define	VID_GETCURPOS	0x3			/* get cursor position */
-#define	VID_SETCURPAGE	0x5			/* set current display page */
-#define	VID_SCROLLUP	0x6			/* scroll up window */
-#define	VID_WRITECHRA	0x9			/* write char and attr */
-#define	VID_GETCURMODE	0x0f			/* get current mode */
+#define         VID_SETCURPOS   0x2                     /* set cursor position */
+#define         VID_GETCURPOS   0x3                     /* get cursor position */
+#define         VID_SETCURPAGE  0x5                     /* set current display page */
+#define         VID_SCROLLUP    0x6                     /* scroll up window */
+#define         VID_WRITECHRA   0x9                     /* write char and attr */
+#define         VID_GETCURMODE  0x0f                    /* get current mode */
 
 static u8_t vidpage;
 static u8_t maxcol;
@@ -30,35 +30,35 @@ static void writenum(u64_t num, u8_t base, u8_t minlen, u8_t pad);
 /* initialize video
 get screen width & height, actual video page number, current cursor position
 set default background and foreground color
-input:	-
-output:	-
+input:  -
+output:         -
 */
 void initvideo() {
   u8_t vidmode;
 
-  __asm__ __volatile__ (			/* get curr vid mode	*/
-    "       int     %[int_video]	\n"	/* mod: AX, BH		*/
-    "       movb    %%ah, %[maxcol]	\n"	/* number of char cols	*/
-    "       movb    %%bh, %%bl		\n"	/* active page		*/
+  __asm__ __volatile__ (                        /* get curr vid mode    */
+    "       int     %[int_video]        \n"     /* mod: AX, BH          */
+    "       movb    %%ah, %[maxcol]     \n"     /* number of char cols  */
+    "       movb    %%bh, %%bl          \n"     /* active page          */
     : "=a" (vidmode),
       "=b" (vidpage),
       [maxcol] "=m" (maxcol)
-    : "a" ((u16_t)VID_GETCURMODE << 8),		/* AH = 0x0f		*/
-      "b" ((u16_t)0xff << 8),			/* BH = 0xff		*/
+    : "a" ((u16_t)VID_GETCURMODE << 8),                 /* AH = 0x0f            */
+      "b" ((u16_t)0xff << 8),                   /* BH = 0xff            */
       [int_video] "i" (INT_VIDEO)
   );
 
-  if (vidpage == 0xff || maxcol == VID_GETCURMODE) {	/* BIOS bug	*/
-		/* we have no video page number and column number	*/
+  if (vidpage == 0xff || maxcol == VID_GETCURMODE) {    /* BIOS bug     */
+                /* we have no video page number and column number       */
     vidpage = 0;
     __asm__ __volatile__ (
-      "       int     %[int_video]	\n"	/* select current page	*/
+      "       int     %[int_video]      \n"     /* select current page  */
       :
-      : "a" ((u16_t)VID_SETCURPAGE << 8 | vidpage),	/* AH = 0x05	*/
+      : "a" ((u16_t)VID_SETCURPAGE << 8 | vidpage),     /* AH = 0x05    */
         [int_video] "i" (INT_VIDEO)
     );
 
-    switch (vidmode) {		/* get columns number from video mode	*/
+    switch (vidmode) {          /* get columns number from video mode   */
       case 2:
       case 3:
       case 6:
@@ -75,13 +75,13 @@ void initvideo() {
   maxrow = 25 - 1;
   color = CLR_LGRAY;
 
-  __asm__ __volatile__ (			/* get cursor position	*/
-    "       int     %[int_video]	\n"
-    "       movb    %%dh, %%al		\n"	/* DX = row & column	*/
+  __asm__ __volatile__ (                        /* get cursor position  */
+    "       int     %[int_video]        \n"
+    "       movb    %%dh, %%al          \n"     /* DX = row & column    */
     : "=a" (row),
       "=d" (col)
-    : "a" ((u16_t)VID_GETCURPOS << 8),		/* AH = 0x03		*/
-      "b" ((u32_t)vidpage << 8),		/* BH = vide page num	*/
+    : "a" ((u16_t)VID_GETCURPOS << 8),          /* AH = 0x03            */
+      "b" ((u32_t)vidpage << 8),                /* BH = vide page num   */
       [int_video] "i" (INT_VIDEO)
     : "cx"
   );
@@ -89,8 +89,8 @@ void initvideo() {
 
 /* get color
 get background and foreground color
-input:	-
-output:	background and foreground color
+input:  -
+output:         background and foreground color
 */
 u8_t getcolor() {
   return color;
@@ -98,8 +98,8 @@ u8_t getcolor() {
 
 /* set color
 set background and foreground color
-input:	background and foreground color
-output:	-
+input:  background and foreground color
+output:         -
 */
 void setcolor(u8_t c) {
   color = c;
@@ -108,8 +108,8 @@ void setcolor(u8_t c) {
 /* print character
 print character, break line on LF
 - for use only in this .c file
-input:	character to print
-output:	-
+input:  character to print
+output:         -
 */
 static void writechr(u8_t ch) {
   if (ch == '\n') {
@@ -118,11 +118,11 @@ static void writechr(u8_t ch) {
   }
   else {
     __asm__ __volatile__ (
-      "       int     %[int_video]	\n"
+      "       int     %[int_video]      \n"
       :
-      : "a" ((u16_t)VID_WRITECHRA << 8 | ch),	/* AH = 0x09, AL = char	*/
-        "b" ((u16_t)vidpage << 8 | color),	/* BH = page, BL = clr	*/
-        "c" ((u16_t)1),				/* CX = counter		*/
+      : "a" ((u16_t)VID_WRITECHRA << 8 | ch),   /* AH = 0x09, AL = char         */
+        "b" ((u16_t)vidpage << 8 | color),      /* BH = page, BL = clr  */
+        "c" ((u16_t)1),                                 /* CX = counter                 */
         [int_video] "i" (INT_VIDEO)
     );
     col ++;
@@ -136,34 +136,35 @@ static void writechr(u8_t ch) {
   if (row > maxrow) {
     row = maxrow;
     __asm__ __volatile__ (
-      "       movw    %%ds, %%si	\n"	/* BIOS bug clears DS	*/
-      "       int     %[int_video]	\n"
-      "       movw    %%si, %%ds	\n"
+      "       pushw   %%bp              \n"     /* BIOS bug destroys BP */
+      "       pushw   %%ds              \n"     /* BIOS bug clears DS   */
+      "       int     %[int_video]      \n"
+      "       popw    %%ds              \n"
+      "       popw    %%bp              \n"
       :
-      : "a" ((u16_t)VID_SCROLLUP << 8 | 1),	/* AH = 0x06, AL = line	*/
-        "b" ((u16_t)(CLR_BLACK << 4 | CLR_GRAY) << 8),	/* BH = color	*/
-        "c" ((u16_t)0),				/* CX = upper left	*/
-        "d" ((u16_t)maxrow << 8 | maxcol),	/* DX = lower right	*/
+      : "a" ((u16_t)VID_SCROLLUP << 8 | 1),     /* AH = 0x06, AL = line         */
+        "b" ((u16_t)(CLR_BLACK << 4 | CLR_GRAY) << 8),  /* BH = color   */
+        "c" ((u16_t)0),                                 /* CX = upper left      */
+        "d" ((u16_t)maxrow << 8 | maxcol),      /* DX = lower right     */
         [int_video] "i" (INT_VIDEO)
-      : "si", "bp"				/* BIOS bug		*/
     );
   }
 
   __asm__ __volatile__ (
-    "       int     %[int_video]	\n"
+    "       int     %[int_video]        \n"
     :
-    : "a" ((u16_t)VID_SETCURPOS << 8),		/* AH = 0x02		*/
-      "b" ((u16_t)vidpage << 8),		/* BH = page number	*/
-      "d" ((u16_t)row << 8 | col),		/* DH = row, DL = col	*/
-      [int_video]		"i" (INT_VIDEO)
+    : "a" ((u16_t)VID_SETCURPOS << 8),          /* AH = 0x02            */
+      "b" ((u16_t)vidpage << 8),                /* BH = page number     */
+      "d" ((u16_t)row << 8 | col),              /* DH = row, DL = col   */
+      [int_video]               "i" (INT_VIDEO)
   );
 }
 
 /* print string
 print zero terminated string
 - for use only in this .c file
-input:	pointer to string
-output:	-
+input:  pointer to string
+output:         -
 */
 static void writestr(char *str) {
   while (*str) {
@@ -174,15 +175,15 @@ static void writestr(char *str) {
 /* print number
 print decimal or hexa number
 - for use only in this .c file
-input:	number
-	base (10 or 16)
-	minimal length in characters
-	character to pad to minimal length
-output:	-
+input:  number
+        base (10 or 16)
+        minimal length in characters
+        character to pad to minimal length
+output:         -
 */
 static void writenum(u64_t num, u8_t base, u8_t minlen, u8_t pad) {
   u8_t len;
-  char buff[MAXNUMLEN + 1];		/* tailing 0	*/
+  char buff[MAXNUMLEN + 1];             /* tailing 0    */
   char *digit;
 
   if (base <= 16) {
@@ -206,9 +207,9 @@ static void writenum(u64_t num, u8_t base, u8_t minlen, u8_t pad) {
 
 /* print variable arguments
 print a format string and variable arguments given by a variable argument list
-input:	format string
-	variable argument list (va_list)
-output:	-
+input:  format string
+        variable argument list (va_list)
+output:         -
 */
 void vprintf(const char *format, va_list args) {
   int percent;
@@ -307,9 +308,9 @@ void vprintf(const char *format, va_list args) {
 
 /* print variable arguments
 print a format string and variable arguments given by more arguments
-input:	format string
-	variable arguments
-output:	-
+input:  format string
+        variable arguments
+output:         -
 */
 void printf(const char *format, ...) {
   va_list args;

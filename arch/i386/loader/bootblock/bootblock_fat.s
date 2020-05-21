@@ -2,13 +2,15 @@
 .arch i8086
 .code16
 
-.section .itext, "ax"	# -----------------------------------------------------
+.section .jmptext, "ax"	# -----------------------------------------------------
 	jmp	start			# jump over FAT BPB
 
-.section .text	# ------------------------------------------------------------
+.section .text	# -------------------------------------------------------------
 
+.globl main
+main:
 	call	load_ldr_2nd		# load and run 2nd stage loader
 
 .section .data	# -------------------------------------------------------------
 .globl initstr
-initstr:    .string "boot\r\n"  ## TODO boot sector\r\n
+initstr:    .string "b\r\n"  ## TODO boot sector\r\n

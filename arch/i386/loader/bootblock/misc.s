@@ -2,10 +2,10 @@
 .arch i8086
 .code16
 
-.section .text  # --------------------------------------------------------------
+.section .text
 
 .globl stopfloppy
-stopfloppy:     # --------------------------------------------------------------
+stopfloppy:
 # stop floppy motor
 # IN:   -
 # OUT:  -
@@ -16,7 +16,7 @@ stopfloppy:     # --------------------------------------------------------------
         ret
 
 .globl stoperr
-stoperr:        # --------------------------------------------------------------
+stoperr:
 # wite error message and stops machine
 # IN:   SI: pointer to error message
 # OUT:  -

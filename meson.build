@@ -9,21 +9,4 @@ assert(meson.is_cross_build(), 'Only cross build enabled!')
 
 objcopy = find_program('objcopy')
 
-add_global_arguments ([ '-ffreestanding',
-                        '-O2',
-                        '-pedantic',
-                        '-Werror',
-                        '-Wall',
-                        '-Wextra',
-                        '-std=gnu99'
-                      ],
-                      language: 'c'
-                     )
-
-add_global_link_arguments ([ '-nostdlib',
-                             '-lgcc'
-                           ],
-                           language: 'c'
-                          )
-
 subdir('arch')

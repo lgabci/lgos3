@@ -10,6 +10,7 @@ MEMORY {
 
 SECTIONS {
   .text : ALIGN(1) {
+    *(.inittext)
     *(.text)
   } >ram
 

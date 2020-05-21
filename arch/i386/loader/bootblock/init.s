@@ -2,44 +2,46 @@
 .arch i8086
 .code16
 
-.equ	BIOSSEG,	0x07c0		# BIOS boot block segment
-.equ	BBSEG, 		0x0060		# move boot block segment here
-.equ	CODESIZE,	0x200		# code size of boot sector
-.equ	STACKSIZE,	0x180		# stack size
+.equ    BIOSSEG,        0x07c0          # BIOS boot block segment
+.equ    BBSEG,          0x0060          # move boot block segment here
+.equ    CODESIZE,       0x200           # code size of boot sector
+.equ    STACKSIZE,      0x180           # stack size
 
-.section .text	# ------------------------------------------------------------
+.section .inittext, "ax", @progbits
+
+.extern drive                           # disk.s
+
 .globl start
 start:
-	cli				# disable interrupts
+        cli                             # disable interrupts
+        movw    $BBSEG, %ax
+        movw    %ax, %ss
+        movw    $stack + STACKSIZE, %sp
+        sti                             # enable interrupts
+        movw    %ax, %ds                # set DS and ES
+        movw    %ax, %es
 
-	movw	$BIOSSEG, %ax		# set segment registers
-	movw	%ax, %ds		# and copy bootblock to 0060:0000
+        movw    $(BIOSSEG - BBSEG) << 4, %si
+        xorw    %di, %di
+        movw    $CODESIZE >> 1, %cx     # copy words
+        cld                             # increment index
+rep     movsw
 
-	movw	$BBSEG, %ax
-	movw	%ax, %es
-	movw	%ax, %ss
-	movw	$stack + STACKSIZE, %sp
+        ljmp    $BBSEG, $1f             # set CS
 
-	sti				# enable interrupts
+.section .text
 
-	xorw	%si, %si		# copy
-	xorw	%di, %di
-	movw	$CODESIZE >> 1, %cx	# copy words
-	cld				# increment index
-rep	movsw
+1:              # CS, DS, ES and SS are set to common code + data segment
 
-	movw	%ax, %ds		# set DS to data segment
-	ljmp	$BBSEG, $1f		# set CS
-1:		# CS, DS, ES and SS are set to common code + data segment
+        movb    %dl, drive              # BIOS disk ID
 
-	movb	%dl, drive		# BIOS disk ID
+        movw    $initstr, %si           # write init message
+        call    writestr
 
-	movw	$initstr, %si		# write init message
-	call	writestr
+        call    disk_getprm             # get disk parameters
 
-	call	disk_getprm		# get disk parameters
+        jmp     main
 
-.section .bss	# --------------------------------------------------------------
-.lcomm	stack, STACKSIZE		# stack
+.section .bss
 
-.section .text	# --------------------------------------------------------------
+.lcomm  stack, STACKSIZE                # stack

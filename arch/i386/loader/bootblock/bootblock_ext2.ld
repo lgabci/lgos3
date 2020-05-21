@@ -10,6 +10,7 @@ MEMORY {
 
 SECTIONS {
   .text : {
+    *(.inittext)
     *(.text)
   } >ram
 
