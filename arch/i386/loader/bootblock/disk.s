@@ -75,14 +75,13 @@ readsector:
         incw    %cx                     # CX = sec: LBA mod SPT + 1, 6 bits
 
         divw    (headnum)               # LBA / SPT / number of heads
-        test    %dx, %dx                # DX = 0?, cyl must fit in 10 bits
-        jnz     geomerror
-        cmpw    %ax, (cylnum)           # AX = cylinder
-        jb      geomerror
+        cmpw    (cylnum), %ax           # AX = cylinder, DX = head
+        jae     geomerror
         xchgb   %ah, %al
+        andb    $0x03, %al
         rorb    %al
         rorb    %al
-        orb     %al, %cl                # CX = cylinder and sector
+        orw     %ax, %cx                # CX = cylinder and sector
 
         movb    %dl, %dh                # DH = head number
 
@@ -94,22 +93,22 @@ readsector_chs:
 #       ES:BX: address to read
 # OUT:  memory, halt on error
 # MOD:  AX, DL, DI, flags
-        cmpb    %dh, (headnum)          # test head: 0 .. headnum - 1
-        jb      geomerror
+        cmpb    (headnum), %dh          # test head: 0 .. headnum - 1
+        jae     geomerror
 
         movb    %cl, %al                # test sector: 1 .. secnum
         andb    $0x3f, %al
         jz      geomerror
-        cmpb    %al, (secnum)
-        jbe     geomerror
+        cmpb    (secnum), %al
+        ja      geomerror
 
         movw    %cx, %ax                # test cylinder: 0 .. cylnum - 1
         rolb    %al
         rolb    %al
         andb    $0x02, %al
         xchgb   %ah, %al
-        cmpw    %ax, (cylnum)
-        jb      geomerror
+        cmpw    (cylnum), %ax
+        jae     geomerror
 
         movw    $DISK_RETRY, %di        # DI = error counter
 1:      movw    $DISK_READ << 8 | 1, %ax        # disk read, 1 sector
