@@ -30,9 +30,6 @@ disk_getprm:
         popw    %es                     # restore ES
         jc      ioerror
 
-        incb    %dh                     # heads: 0 based
-        movb    %dh, (headnum)
-
         movb    %cl, %al
         andb    $0x3f, %al              # sectors, only low 6 bits
         movb    %al, (secnum)
@@ -44,6 +41,11 @@ disk_getprm:
         incw    %ax                     # 0 based
         movw    %ax, (cylnum)
 
+        xorw    %ax, %ax
+        movb    %dh, %al
+        incw    %ax                     # heads: 0 based
+        movw    %ax, (headnum)
+
         movb    $DISK_GETSTAT, %ah      # BIOS bug: get status of last op.
         movb    (drive), %dl            # to reset bus
         int     $INT_DISK
@@ -52,7 +54,8 @@ disk_getprm:
 
 .global readsector
 readsector:
-## TODO rewrite
+## TODO change AX:DX to DX:AX
+## TODO: test for a) read errors b) for 256 head HDD-s
 # read sector, using readsector_chs, halt on error
 # IN:   AX:DX: LBA number of sector to read
 #       ES:BX: address to read
@@ -93,7 +96,9 @@ readsector_chs:
 #       ES:BX: address to read
 # OUT:  memory, halt on error
 # MOD:  AX, DL, DI, flags
-        cmpb    (headnum), %dh          # test head: 0 .. headnum - 1
+        xorw    %ax, %ax
+        movb    %dh, %al
+        cmpw    (headnum), %ax          # test head: 0 .. headnum - 1
         jae     geomerror
 
         movb    %cl, %al                # test sector: 1 .. secnum
