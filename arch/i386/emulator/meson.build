@@ -2,7 +2,7 @@
 
 mkimg = find_program( 'mkimg.sh' )
 qemu = find_program( 'qemu-system-i386' )
-  
+
 img_hd_ext2 = custom_target(
   'hd_ext2.img',
   output: 'hd_ext2.img',

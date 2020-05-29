@@ -127,7 +127,9 @@ readsector_chs:
         popw    %di                     # restore error counter
 
         jnc     2f                      # error?
-        decw    %di                     # yes, decrease counter
+        testb   $0x80, %dl              # HDD: error on 1st attempt
+        jnz     ioerror
+        decw    %di                     # FDD: decrease counter
         jz      ioerror                 # I/O error
 
         movb    $DISK_RESET, %ah        # reset disk before retry read

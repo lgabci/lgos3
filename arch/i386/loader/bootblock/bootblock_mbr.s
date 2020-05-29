@@ -82,8 +82,8 @@ main:
 .section .data  # ------------------------------------------------------------
 .globl initstr
 initstr:    .string "MBR\r\n"
-noactstr:   .string "No active part."    ## TODO no active partition found
-invptstr:   .string "Invalid part table."    ## TODO
-invbsstr:   .string "Invalid boot sector."
+noactstr:   .string "No ac part."    ## TODO no active partition found
+invptstr:   .string "Inv part tab."    ## TODO
+invbsstr:   .string "Inv boot sect."
 
 .section .bss   # ------------------------------------------------------------
