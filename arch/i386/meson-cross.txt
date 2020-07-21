@@ -1,14 +1,23 @@
 [binaries]
-c = 'i686-elf-gcc'
-ld = 'i686-elf-ld'
-ar = 'i686-elf-ar'
-as = 'i686-elf-as'
-size = 'i686-elf-size'
-objdump = 'i686-elf-objdump'
-objcopy = 'i686-elf-objcopy'
-strip = 'i686-elf-strip'
+c = 'i386-elf-gcc'
+c_ld = 'i386-elf-ld'
+ar = 'i386-elf-ar'
+as = 'i386-elf-as'
+size = 'i386-elf-size'
+objdump = 'i386-elf-objdump'
+objcopy = 'i386-elf-objcopy'
+strip = 'i386-elf-strip'
 
 [properties]
+sizeof_int = 4
+sizeof_wchar_t = 4
+sizeof_void* = 4
+
+alignment_char = 1
+alignment_void = 4
+alignment_double = 4
+
+has_function_printf = true
 
 [host_machine]
 system = 'lgos3'
